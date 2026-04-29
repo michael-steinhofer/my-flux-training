@@ -1,6 +1,6 @@
 import Navbar from "../ui/navbar";
 import { sanityFetch } from "@/sanity/lib/live";
-import { urlFor } from "@/sanity/lib/image";
+import { optimizedImg } from "@/sanity/lib/image";
 import { defineQuery } from "groq";
 
 export const dynamic = 'force-dynamic';
@@ -61,11 +61,8 @@ const PORTFOLIO_FALLBACKS = [
   "/images/portfolio-4.webp",
 ];
 
-// Returns Sanity CDN URL when image is uploaded, otherwise local fallback
-function imgSrc(image: { asset?: unknown } | null | undefined, fallback: string): string {
-  if (image?.asset) return urlFor(image as Parameters<typeof urlFor>[0]).width(1200).url();
-  return fallback;
-}
+// Shorthand used throughout this file
+const imgSrc = optimizedImg;
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -232,9 +229,9 @@ export default async function Home() {
     sanityFetch({ query: SETTINGS_QUERY }),
   ]);
 
-  const heroImage = imgSrc(settings?.heroImage, "/images/hero.webp");
-  const profilePhoto = imgSrc(settings?.profilePhoto, "/images/profile.webp");
-  const photographerPhoto = imgSrc(settings?.photographerPhoto, "/images/photographer.webp");
+  const heroImage = imgSrc(settings?.heroImage, "/images/hero.webp", 2400);
+  const profilePhoto = imgSrc(settings?.profilePhoto, "/images/profile.webp", 900);
+  const photographerPhoto = imgSrc(settings?.photographerPhoto, "/images/photographer.webp", 1600);
 
   return (
     <>
@@ -416,7 +413,7 @@ export default async function Home() {
                     {service.desc}
                   </p>
                   <div className="size-[151px] shrink-0 overflow-hidden">
-                    <img src={imgSrc(service.image, SERVICE_FALLBACKS[i])} alt="" className="w-full h-full object-cover" />
+                    <img src={imgSrc(service.image, SERVICE_FALLBACKS[i], 300)} alt="" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>
@@ -512,7 +509,7 @@ export default async function Home() {
             {(testimonials as any[]).map((t, i) => (
               <div key={t._id} className={`snap-start flex-shrink-0 ${t.rotation ?? ""}`}>
                 <TestimonialCard
-                  logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i])}
+                  logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i], 300)}
                   logoW={t.logo?.width ?? TESTIMONIAL_LOGO_DIMS[i]?.w ?? 120}
                   logoH={t.logo?.height ?? TESTIMONIAL_LOGO_DIMS[i]?.h ?? 24}
                   quote={t.quote}
@@ -531,7 +528,7 @@ export default async function Home() {
           <div className="absolute" style={{ left: testimonials[0].left ?? "46.9%", top: testimonials[0].top ?? 272 }}>
             <div className={testimonials[0].rotation ?? ""}>
               <TestimonialCard
-                logo={imgSrc(testimonials[0].logo, TESTIMONIAL_LOGO_FALLBACKS[0])}
+                logo={imgSrc(testimonials[0].logo, TESTIMONIAL_LOGO_FALLBACKS[0], 300)}
                 logoW={testimonials[0].logo?.width ?? TESTIMONIAL_LOGO_DIMS[0].w}
                 logoH={testimonials[0].logo?.height ?? TESTIMONIAL_LOGO_DIMS[0].h}
                 quote={testimonials[0].quote}
@@ -550,7 +547,7 @@ export default async function Home() {
           <div key={t._id} className="absolute" style={{ left: t.left ?? "0%", top: t.top ?? 0 }}>
             <div className={t.rotation ?? ""}>
               <TestimonialCard
-                logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i + 1])}
+                logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i + 1], 300)}
                 logoW={t.logo?.width ?? TESTIMONIAL_LOGO_DIMS[i + 1]?.w ?? 120}
                 logoH={t.logo?.height ?? TESTIMONIAL_LOGO_DIMS[i + 1]?.h ?? 24}
                 quote={t.quote}
@@ -576,7 +573,7 @@ export default async function Home() {
             {(newsItems as any[]).map((item, i) => (
               <NewsCard
                 key={item._id}
-                img={imgSrc(item.image, NEWS_FALLBACKS[i])}
+                img={imgSrc(item.image, NEWS_FALLBACKS[i], 800)}
                 text={item.text}
                 imgHeight="h-[398px]"
                 className="w-[300px] shrink-0 snap-start"
@@ -599,21 +596,21 @@ export default async function Home() {
           </div>
           <div className="flex items-start gap-[31px]">
             <NewsCard
-              img={imgSrc(newsItems[0]?.image, NEWS_FALLBACKS[0])}
+              img={imgSrc(newsItems[0]?.image, NEWS_FALLBACKS[0], 800)}
               text={newsItems[0]?.text ?? ""}
               imgHeight="aspect-[353/469]"
               className="w-[min(353px,calc((100vw_-_330px)_/_3))]"
             />
             <div className="w-px self-stretch bg-[#c8c8c8]" />
             <NewsCard
-              img={imgSrc(newsItems[1]?.image, NEWS_FALLBACKS[1])}
+              img={imgSrc(newsItems[1]?.image, NEWS_FALLBACKS[1], 800)}
               text={newsItems[1]?.text ?? ""}
               imgHeight="aspect-[353/469]"
               className="w-[min(353px,calc((100vw_-_330px)_/_3))] pt-[120px]"
             />
             <div className="w-px self-stretch bg-[#c8c8c8]" />
             <NewsCard
-              img={imgSrc(newsItems[2]?.image, NEWS_FALLBACKS[2])}
+              img={imgSrc(newsItems[2]?.image, NEWS_FALLBACKS[2], 800)}
               text={newsItems[2]?.text ?? ""}
               imgHeight="aspect-[353/469]"
               className="w-[min(353px,calc((100vw_-_330px)_/_3))]"
