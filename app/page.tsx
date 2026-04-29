@@ -5,13 +5,13 @@ const playfairStyle = { fontFamily: "var(--playfair)" };
 const monoStyle = { fontFamily: "var(--font-geist-mono)" };
 
 const heroImage =
-  "/images/hero.png";
+  "/images/hero.webp";
 
 const profilePhoto =
-  "/images/profile.png";
+  "/images/profile.webp";
 
 const photographerPhoto =
-  "/images/photographer.png";
+  "/images/photographer.webp";
 
 const arrowIcon =
   "/images/arrow-icon.svg";
@@ -21,46 +21,46 @@ const services = [
     num: "[ 1 ]",
     name: "Brand Discovery",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-1.png",
+    img: "/images/service-1.webp",
   },
   {
     num: "[ 2 ]",
     name: "Web design & Dev",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-2.png",
+    img: "/images/service-2.webp",
   },
   {
     num: "[ 3 ]",
     name: "Marketing",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-3.png",
+    img: "/images/service-3.webp",
   },
   {
     num: "[ 4 ]",
     name: "Photography",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-4.png",
+    img: "/images/service-4.webp",
   },
 ];
 
 const newsItems = [
   {
-    img: "/images/news-1.png",
+    img: "/images/news-1.webp",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
-    img: "/images/news-2.png",
+    img: "/images/news-2.webp",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
-    img: "/images/news-3.png",
+    img: "/images/news-3.webp",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
 ];
 
 const testimonials = [
   {
-    logo: "/images/testimonial-logo-1.png",
+    logo: "/images/testimonial-logo-1.webp",
     logoW: 138, logoH: 19,
     quote: "Professional, precise, and incredibly fast at handling complex product visualizations and templates.",
     name: "Lukas Weber",
@@ -68,7 +68,7 @@ const testimonials = [
     left: "46.9%", top: 272,
   },
   {
-    logo: "/images/testimonial-logo-2.png",
+    logo: "/images/testimonial-logo-2.webp",
     logoW: 143, logoH: 19,
     quote: "A brilliant creative partner who transformed our vision into a unique, high-impact brand identity. Their ability to craft everything from custom mascots to polished logos is truly impressive.",
     name: "Marko Stojković",
@@ -76,7 +76,7 @@ const testimonials = [
     left: "7.1%", top: 142,
   },
   {
-    logo: "/images/testimonial-logo-3.png",
+    logo: "/images/testimonial-logo-3.webp",
     logoW: 109, logoH: 31,
     quote: "A strategic partner who balances stunning aesthetics with high-performance UX for complex platforms. They don't just make things look good; they solve business problems through visual clarity.",
     name: "Sarah Jenkins",
@@ -84,7 +84,7 @@ const testimonials = [
     left: "21.2%", top: 553,
   },
   {
-    logo: "/images/testimonial-logo-4.png",
+    logo: "/images/testimonial-logo-4.webp",
     logoW: 81, logoH: 36,
     quote: "An incredibly versatile designer who delivers consistent quality across a wide range of styles and formats.",
     name: "Sofia Martínez",
@@ -97,25 +97,25 @@ const portfolioProjects = [
   {
     title: "Surfers Paradise",
     tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-1.png",
+    img: "/images/portfolio-1.webp",
     desktopHeight: "h-[744px]",
   },
   {
     title: "Cyberpunk Caffe",
     tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-2.png",
+    img: "/images/portfolio-2.webp",
     desktopHeight: "h-[699px]",
   },
   {
     title: "Agency 976",
     tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-3.png",
+    img: "/images/portfolio-3.webp",
     desktopHeight: "h-[699px]",
   },
   {
     title: "Minimal Playground",
     tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-4.png",
+    img: "/images/portfolio-4.webp",
     desktopHeight: "h-[744px]",
   },
 ];
