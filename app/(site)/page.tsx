@@ -1,124 +1,71 @@
-import Navbar from "./ui/navbar";
+import Navbar from "../ui/navbar";
+import { sanityFetch } from "@/sanity/lib/live";
+import { urlFor } from "@/sanity/lib/image";
+import { defineQuery } from "groq";
 
 const interStyle = { fontFamily: "var(--inter)" };
 const playfairStyle = { fontFamily: "var(--playfair)" };
 const monoStyle = { fontFamily: "var(--font-geist-mono)" };
 
-const heroImage =
-  "/images/hero.webp";
+const arrowIcon = "/images/arrow-icon.svg";
 
-const profilePhoto =
-  "/images/profile.webp";
+// ─── GROQ Queries ────────────────────────────────────────────────────────────
 
-const photographerPhoto =
-  "/images/photographer.webp";
+const SERVICES_QUERY = defineQuery(
+  `*[_type == "service"] | order(order asc) { _id, num, name, desc, image }`
+);
+const NEWS_QUERY = defineQuery(
+  `*[_type == "newsItem"] | order(order asc) { _id, text, image }`
+);
+const TESTIMONIALS_QUERY = defineQuery(
+  `*[_type == "testimonial"] | order(order asc) { _id, name, quote, logo { asset, width, height }, rotation, left, top }`
+);
+const PORTFOLIO_QUERY = defineQuery(
+  `*[_type == "portfolioProject"] | order(order asc) { _id, title, tags, image, desktopHeight }`
+);
+const SETTINGS_QUERY = defineQuery(
+  `*[_type == "siteSettings"][0] { heroImage, profilePhoto, photographerPhoto }`
+);
 
-const arrowIcon =
-  "/images/arrow-icon.svg";
+// ─── Local image fallbacks (until images are uploaded to Sanity) ─────────────
 
-const services = [
-  {
-    num: "[ 1 ]",
-    name: "Brand Discovery",
-    desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-1.webp",
-  },
-  {
-    num: "[ 2 ]",
-    name: "Web design & Dev",
-    desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-2.webp",
-  },
-  {
-    num: "[ 3 ]",
-    name: "Marketing",
-    desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-3.webp",
-  },
-  {
-    num: "[ 4 ]",
-    name: "Photography",
-    desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "/images/service-4.webp",
-  },
+const SERVICE_FALLBACKS = [
+  "/images/service-1.webp",
+  "/images/service-2.webp",
+  "/images/service-3.webp",
+  "/images/service-4.webp",
+];
+const NEWS_FALLBACKS = [
+  "/images/news-1.webp",
+  "/images/news-2.webp",
+  "/images/news-3.webp",
+];
+const TESTIMONIAL_LOGO_FALLBACKS = [
+  "/images/testimonial-logo-1.webp",
+  "/images/testimonial-logo-2.webp",
+  "/images/testimonial-logo-3.webp",
+  "/images/testimonial-logo-4.webp",
+];
+const TESTIMONIAL_LOGO_DIMS = [
+  { w: 138, h: 19 },
+  { w: 143, h: 19 },
+  { w: 109, h: 31 },
+  { w: 81, h: 36 },
+];
+const PORTFOLIO_FALLBACKS = [
+  "/images/portfolio-1.webp",
+  "/images/portfolio-2.webp",
+  "/images/portfolio-3.webp",
+  "/images/portfolio-4.webp",
 ];
 
-const newsItems = [
-  {
-    img: "/images/news-1.webp",
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    img: "/images/news-2.webp",
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-  {
-    img: "/images/news-3.webp",
-    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  },
-];
+// Returns Sanity CDN URL when image is uploaded, otherwise local fallback
+function imgSrc(image: { asset?: unknown } | null | undefined, fallback: string): string {
+  if (image?.asset) return urlFor(image as Parameters<typeof urlFor>[0]).width(1200).url();
+  return fallback;
+}
 
-const testimonials = [
-  {
-    logo: "/images/testimonial-logo-1.webp",
-    logoW: 138, logoH: 19,
-    quote: "Professional, precise, and incredibly fast at handling complex product visualizations and templates.",
-    name: "Lukas Weber",
-    rot: "rotate-[2.9deg]",
-    left: "46.9%", top: 272,
-  },
-  {
-    logo: "/images/testimonial-logo-2.webp",
-    logoW: 143, logoH: 19,
-    quote: "A brilliant creative partner who transformed our vision into a unique, high-impact brand identity. Their ability to craft everything from custom mascots to polished logos is truly impressive.",
-    name: "Marko Stojković",
-    rot: "rotate-[-6.85deg]",
-    left: "7.1%", top: 142,
-  },
-  {
-    logo: "/images/testimonial-logo-3.webp",
-    logoW: 109, logoH: 31,
-    quote: "A strategic partner who balances stunning aesthetics with high-performance UX for complex platforms. They don't just make things look good; they solve business problems through visual clarity.",
-    name: "Sarah Jenkins",
-    rot: "rotate-[2.23deg]",
-    left: "21.2%", top: 553,
-  },
-  {
-    logo: "/images/testimonial-logo-4.webp",
-    logoW: 81, logoH: 36,
-    quote: "An incredibly versatile designer who delivers consistent quality across a wide range of styles and formats.",
-    name: "Sofia Martínez",
-    rot: "rotate-[-4.15deg]",
-    left: "68.5%", top: 546,
-  },
-];
-
-const portfolioProjects = [
-  {
-    title: "Surfers Paradise",
-    tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-1.webp",
-    desktopHeight: "h-[744px]",
-  },
-  {
-    title: "Cyberpunk Caffe",
-    tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-2.webp",
-    desktopHeight: "h-[699px]",
-  },
-  {
-    title: "Agency 976",
-    tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-3.webp",
-    desktopHeight: "h-[699px]",
-  },
-  {
-    title: "Minimal Playground",
-    tags: ["Social Media", "Photography"],
-    img: "/images/portfolio-4.webp",
-    desktopHeight: "h-[744px]",
-  },
-];
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function NewsCard({
   img, text, imgHeight, className = "",
@@ -232,17 +179,9 @@ function PortfolioCta() {
 }
 
 function ProjectCard({
-  img,
-  title,
-  tags,
-  height,
-  titleSize,
+  img, title, tags, height, titleSize,
 }: {
-  img: string;
-  title: string;
-  tags: string[];
-  height: string;
-  titleSize: string;
+  img: string; title: string; tags: string[]; height: string; titleSize: string;
 }) {
   return (
     <div className="flex flex-col gap-[10px]">
@@ -273,40 +212,50 @@ function ProjectCard({
   );
 }
 
-export default function Home() {
+// ─── Page ────────────────────────────────────────────────────────────────────
+
+export default async function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [
+    { data: services },
+    { data: newsItems },
+    { data: testimonials },
+    { data: portfolioProjects },
+    { data: settings },
+  ] = await Promise.all([
+    sanityFetch({ query: SERVICES_QUERY }),
+    sanityFetch({ query: NEWS_QUERY }),
+    sanityFetch({ query: TESTIMONIALS_QUERY }),
+    sanityFetch({ query: PORTFOLIO_QUERY }),
+    sanityFetch({ query: SETTINGS_QUERY }),
+  ]);
+
+  const heroImage = imgSrc(settings?.heroImage, "/images/hero.webp");
+  const profilePhoto = imgSrc(settings?.profilePhoto, "/images/profile.webp");
+  const photographerPhoto = imgSrc(settings?.photographerPhoto, "/images/photographer.webp");
+
   return (
     <>
     <section className="relative overflow-hidden min-h-screen">
-      {/* Content — photo and blur live here with the text so mix-blend-mode
-          and backdrop-blur both composite against the photo correctly */}
       <div className="relative flex flex-col min-h-screen justify-between md:justify-start md:gap-[240px] px-4 md:px-8 pb-6 md:pb-0">
 
-        {/* Background image — desktop: wider than viewport, vertically centered */}
+        {/* Background image — desktop */}
         <div className="hidden md:block pointer-events-none absolute -translate-y-1/2 aspect-[2291/1346] left-[-34.79%] right-[-34.79%] top-[calc(50%+88.84px)]">
-          <img
-            src={heroImage}
-            alt=""
-            className="absolute inset-0 max-w-none size-full"
-          />
+          <img src={heroImage} alt="" className="absolute inset-0 max-w-none size-full" />
         </div>
 
-        {/* Background image — mobile: covers full section */}
+        {/* Background image — mobile */}
         <div className="md:hidden pointer-events-none absolute inset-0">
-          <img
-            src={heroImage}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover object-[65%_center]"
-          />
+          <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover object-[65%_center]" />
         </div>
 
-        {/* Frosted-glass overlay — after images so it blurs the photo */}
+        {/* Frosted-glass overlay */}
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[349px] backdrop-blur-[10px] bg-[rgba(217,217,217,0.01)] [mask-image:linear-gradient(to_bottom,transparent,black_50%)]" />
 
         <Navbar />
 
         {/* Hero block */}
         <div className="flex flex-col justify-between h-[341px] md:h-auto md:justify-start md:w-full">
-          {/* Name */}
           <div className="flex flex-col pb-[15px]">
             <div className="flex justify-center md:justify-start px-[18px] -mb-[15px]">
               <p
@@ -323,8 +272,6 @@ export default function Home() {
               {"Harvey   Specter"}
             </h1>
           </div>
-
-          {/* Bio */}
           <div className="flex md:justify-end">
             <div className="flex flex-col gap-[17px] w-[293px]">
               <p
@@ -354,77 +301,39 @@ export default function Home() {
     {/* About section */}
     <section id="about" className="bg-[#fafafa]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-12 md:py-[120px]">
-      {/* Header: label + rule */}
       <div className="flex flex-col gap-3 items-end mb-6">
-        <p
-          className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1] text-right"
-          style={monoStyle}
-        >
+        <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1] text-right" style={monoStyle}>
           [ 8+ years in industry ]
         </p>
         <div className="w-full border-t border-[#1f1f1f]" />
       </div>
-
-      {/* Staircase text */}
       <div className="flex flex-col gap-2 uppercase">
-        {/* Line 1: text (left) + 001 (right) on desktop; 001 above text on mobile */}
         <div className="flex flex-col-reverse items-center md:flex-row md:items-start gap-3">
-          <p
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-pre"
-            style={interStyle}
-          >
+          <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-pre" style={interStyle}>
             {"A creative director   /"}
           </p>
-          <p
-            className="text-[14px] text-[#1f1f1f] leading-[1.1]"
-            style={monoStyle}
-          >
-            001
-          </p>
+          <p className="text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>001</p>
         </div>
-
-        {/* Line 2: Photographer — indented on desktop, centered on mobile */}
         <div className="flex justify-center md:justify-start md:pl-[15.6%]">
-          <p
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap"
-            style={interStyle}
-          >
+          <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             Photographer
           </p>
         </div>
-
-        {/* Line 3: Born & raised — deeper indent on desktop, centered on mobile */}
         <div className="flex justify-center md:justify-start md:pl-[44.3%]">
-          <p
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap"
-            style={interStyle}
-          >
+          <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             Born <span style={playfairStyle}>&amp;</span> raised
           </p>
         </div>
-
-        {/* Line 4: on the south side — full-left on desktop, centered on mobile */}
         <div className="flex justify-center md:justify-start">
-          <p
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap"
-            style={interStyle}
-          >
+          <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             on the south side
           </p>
         </div>
-
-        {/* Line 5: of chicago. + [ creative freelancer ] label */}
         <div className="flex flex-col items-center md:items-start md:pl-[44%] [@media(min-width:1440px)]:flex-row [@media(min-width:1440px)]:items-end gap-3">
-          <p
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap"
-            style={interStyle}
-          >
+          <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             of chicago.
           </p>
-          <p
-            className="text-[14px] text-[#1f1f1f] leading-[1.1] [@media(min-width:1440px)]:pb-2"
-            style={monoStyle}
-          >
+          <p className="text-[14px] text-[#1f1f1f] leading-[1.1] [@media(min-width:1440px)]:pb-2" style={monoStyle}>
             [ creative freelancer ]
           </p>
         </div>
@@ -435,177 +344,100 @@ export default function Home() {
     {/* Profile / Bio section */}
     <section className="bg-white px-4 md:px-8 py-12 md:py-20">
       <div className="max-w-[1440px] mx-auto">
-
-        {/* Mobile-only: 002 + [ About ] stacked at top */}
         <div className="flex flex-col gap-5 mb-5 md:hidden">
-          <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>
-            002
-          </p>
-          <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>
-            [ About ]
-          </p>
+          <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>002</p>
+          <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>[ About ]</p>
         </div>
-
-        {/* Row: [ About ] far-left | text block + photo */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-
-          {/* [ About ] label — desktop only */}
-          <p
-            className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1] whitespace-nowrap"
-            style={monoStyle}
-          >
+          <p className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1] whitespace-nowrap" style={monoStyle}>
             [ About ]
           </p>
-
-          {/* Right content block */}
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:gap-8 md:w-[clamp(600px,calc(160px_+_57vw),983px)]">
-
-            {/* Text block with corner-bracket frame */}
             <div className="flex items-stretch gap-3 flex-1">
-              {/* Left bracket column */}
               <div className="flex flex-col justify-between w-6 shrink-0">
                 <CornerBracket />
                 <CornerBracket className="-rotate-90" />
               </div>
-              {/* Body text */}
-              <p
-                className="flex-1 text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px] py-3"
-                style={interStyle}
-              >
+              <p className="flex-1 text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px] py-3" style={interStyle}>
                 Placeholder paragraph one. This is where you introduce yourself — your background, your passion for your craft, and what drives you creatively. Two to three sentences work best here. Placeholder paragraph two. Here you can describe your technical approach, how you collaborate with clients, or what sets your work apart from others in your field.
               </p>
-              {/* Right bracket column */}
               <div className="flex flex-col justify-between w-6 shrink-0">
                 <CornerBracket className="rotate-90" />
                 <CornerBracket className="rotate-180" />
               </div>
             </div>
-
-            {/* 002 label + photo */}
             <div className="flex items-start gap-6 shrink-0">
-              <p
-                className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1]"
-                style={monoStyle}
-              >
-                002
-              </p>
+              <p className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>002</p>
               <div className="w-full md:w-[436px] aspect-[436/614] overflow-hidden">
-                <img
-                  src={profilePhoto}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
+                <img src={profilePhoto} alt="" className="w-full h-full object-cover" />
               </div>
             </div>
-
           </div>
         </div>
       </div>
     </section>
 
-    {/* Full-bleed photo section (pexels-vazhnik-7562188 2) */}
+    {/* Full-bleed photo section */}
     <section className="w-full aspect-[375/565] md:aspect-[8/5] overflow-hidden">
-      <img
-        src={photographerPhoto}
-        alt=""
-        className="w-full h-full object-cover"
-      />
+      <img src={photographerPhoto} alt="" className="w-full h-full object-cover" />
     </section>
+
     {/* Services section */}
     <section id="services" className="bg-black px-4 md:px-8 py-12 md:py-20">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-8 md:gap-12">
-
-        {/* [ services ] label */}
         <p className="text-[14px] text-white uppercase leading-[1.1] whitespace-nowrap" style={monoStyle}>
           [ services ]
         </p>
-
-        {/* [4]  DELIVERABLES */}
         <div className="flex items-center justify-between uppercase text-white whitespace-nowrap">
-          <span
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] tracking-[-0.08em] leading-normal"
-            style={interStyle}
-          >
-            [4]
+          <span className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] tracking-[-0.08em] leading-normal" style={interStyle}>
+            [{services.length}]
           </span>
-          <span
-            className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] tracking-[-0.08em] leading-normal"
-            style={interStyle}
-          >
+          <span className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] tracking-[-0.08em] leading-normal" style={interStyle}>
             Deliverables
           </span>
         </div>
-
-        {/* Service rows */}
         <div className="flex flex-col gap-12">
-          {services.map((service) => (
-            <div key={service.num} className="flex flex-col gap-3">
-
-              {/* [ N ] + rule */}
+          {(services as any[]).map((service, i) => (
+            <div key={service._id} className="flex flex-col gap-3">
               <div className="flex flex-col gap-[9px]">
                 <p className="text-[14px] text-white uppercase leading-[1.1]" style={monoStyle}>
                   {service.num}
                 </p>
                 <div className="w-full border-t border-white" />
               </div>
-
-              {/* Name | description + image */}
               <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start md:justify-between">
-                <p
-                  className="font-bold italic text-[36px] text-white tracking-[-0.04em] leading-[1.1] uppercase whitespace-nowrap"
-                  style={interStyle}
-                >
+                <p className="font-bold italic text-[36px] text-white tracking-[-0.04em] leading-[1.1] uppercase whitespace-nowrap" style={interStyle}>
                   {service.name}
                 </p>
                 <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:gap-6 items-start">
-                  <p
-                    className="text-[14px] text-white leading-[1.3] tracking-[-0.56px] md:w-[393px]"
-                    style={interStyle}
-                  >
+                  <p className="text-[14px] text-white leading-[1.3] tracking-[-0.56px] md:w-[393px]" style={interStyle}>
                     {service.desc}
                   </p>
                   <div className="size-[151px] shrink-0 overflow-hidden">
-                    <img src={service.img} alt="" className="w-full h-full object-cover" />
+                    <img src={imgSrc(service.image, SERVICE_FALLBACKS[i])} alt="" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>
-
             </div>
           ))}
         </div>
-
       </div>
     </section>
 
     {/* Portfolio / Selected Work section */}
     <section id="projects" className="bg-white px-4 md:px-8 py-12 md:py-20">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-8 md:gap-[61px]">
-
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-0 uppercase">
-          {/* Mobile: [ portfolio ] above title */}
-          <p className="md:hidden text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>
-            [ portfolio ]
-          </p>
-          {/* Title + 004 */}
+          <p className="md:hidden text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>[ portfolio ]</p>
           <div className="flex items-start gap-[10px]">
-            <div
-              className="flex flex-col font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.86]"
-              style={interStyle}
-            >
+            <div className="flex flex-col font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.86]" style={interStyle}>
               <p>Selected</p>
               <p>Work</p>
             </div>
-            <p className="text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>
-              004
-            </p>
+            <p className="text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>004</p>
           </div>
-          {/* Desktop: [ portfolio ] rotated -90° on far right */}
           <div className="hidden md:flex h-[110px] w-[15px] items-center justify-center">
-            <p
-              className="-rotate-90 text-[14px] text-[#1f1f1f] leading-[1.1] uppercase whitespace-nowrap"
-              style={monoStyle}
-            >
+            <p className="-rotate-90 text-[14px] text-[#1f1f1f] leading-[1.1] uppercase whitespace-nowrap" style={monoStyle}>
               [ portfolio ]
             </p>
           </div>
@@ -613,12 +445,12 @@ export default function Home() {
 
         {/* Mobile: single column */}
         <div className="flex flex-col gap-6 md:hidden">
-          {portfolioProjects.map((p) => (
+          {(portfolioProjects as any[]).map((p, i) => (
             <ProjectCard
-              key={p.title}
-              img={p.img}
+              key={p._id}
+              img={imgSrc(p.image, PORTFOLIO_FALLBACKS[i])}
               title={p.title}
-              tags={p.tags}
+              tags={p.tags ?? []}
               height="h-[390px]"
               titleSize="text-[24px]"
             />
@@ -628,65 +460,61 @@ export default function Home() {
 
         {/* Desktop: two-column masonry */}
         <div className="hidden md:flex gap-6 items-end">
-          {/* Left column — self-stretch overrides items-end so it fills grid height */}
           <div className="flex flex-col flex-1 self-stretch justify-between">
             <ProjectCard
-              img={portfolioProjects[0].img}
-              title={portfolioProjects[0].title}
-              tags={portfolioProjects[0].tags}
-              height={portfolioProjects[0].desktopHeight}
+              img={imgSrc(portfolioProjects[0]?.image, PORTFOLIO_FALLBACKS[0])}
+              title={portfolioProjects[0]?.title ?? ""}
+              tags={portfolioProjects[0]?.tags ?? []}
+              height={portfolioProjects[0]?.desktopHeight ?? "h-[744px]"}
               titleSize="text-[36px]"
             />
             <ProjectCard
-              img={portfolioProjects[1].img}
-              title={portfolioProjects[1].title}
-              tags={portfolioProjects[1].tags}
-              height={portfolioProjects[1].desktopHeight}
+              img={imgSrc(portfolioProjects[1]?.image, PORTFOLIO_FALLBACKS[1])}
+              title={portfolioProjects[1]?.title ?? ""}
+              tags={portfolioProjects[1]?.tags ?? []}
+              height={portfolioProjects[1]?.desktopHeight ?? "h-[699px]"}
               titleSize="text-[36px]"
             />
             <PortfolioCta />
           </div>
-          {/* Right column — staggered down */}
           <div className="flex flex-col flex-1 gap-[117px] pt-[240px]">
             <ProjectCard
-              img={portfolioProjects[2].img}
-              title={portfolioProjects[2].title}
-              tags={portfolioProjects[2].tags}
-              height={portfolioProjects[2].desktopHeight}
+              img={imgSrc(portfolioProjects[2]?.image, PORTFOLIO_FALLBACKS[2])}
+              title={portfolioProjects[2]?.title ?? ""}
+              tags={portfolioProjects[2]?.tags ?? []}
+              height={portfolioProjects[2]?.desktopHeight ?? "h-[699px]"}
               titleSize="text-[36px]"
             />
             <ProjectCard
-              img={portfolioProjects[3].img}
-              title={portfolioProjects[3].title}
-              tags={portfolioProjects[3].tags}
-              height={portfolioProjects[3].desktopHeight}
+              img={imgSrc(portfolioProjects[3]?.image, PORTFOLIO_FALLBACKS[3])}
+              title={portfolioProjects[3]?.title ?? ""}
+              tags={portfolioProjects[3]?.tags ?? []}
+              height={portfolioProjects[3]?.desktopHeight ?? "h-[744px]"}
               titleSize="text-[36px]"
             />
           </div>
         </div>
-
       </div>
     </section>
 
     {/* Testimonials section */}
     <section id="testimonials" className="bg-[#fafafa]">
 
-      {/* Mobile: title + horizontal scroll carousel */}
+      {/* Mobile: horizontal scroll carousel */}
       <div className="md:hidden px-4 py-16 flex flex-col gap-8">
-        <p
-          className="text-[64px] font-medium capitalize text-black tracking-[-0.07em] leading-[0.8]"
-          style={interStyle}
-        >
+        <p className="text-[64px] font-medium capitalize text-black tracking-[-0.07em] leading-[0.8]" style={interStyle}>
           Testimonials
         </p>
-        {/* Outer div owns overflow-x; inner div adds pt-8 so rotated card tops aren't clipped */}
         <div className="-mx-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-4 px-4 pt-8 pb-4 snap-x snap-mandatory">
-            {testimonials.map((t) => (
-              <div key={t.name} className={`snap-start flex-shrink-0 ${t.rot}`}>
+            {(testimonials as any[]).map((t, i) => (
+              <div key={t._id} className={`snap-start flex-shrink-0 ${t.rotation ?? ""}`}>
                 <TestimonialCard
-                  logo={t.logo} logoW={t.logoW} logoH={t.logoH}
-                  quote={t.quote} name={t.name}
+                  logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i])}
+                  logoW={t.logo?.width ?? TESTIMONIAL_LOGO_DIMS[i]?.w ?? 120}
+                  logoH={t.logo?.height ?? TESTIMONIAL_LOGO_DIMS[i]?.h ?? 24}
+                  quote={t.quote}
+                  name={t.name}
                   className="w-[260px]"
                 />
               </div>
@@ -697,58 +525,56 @@ export default function Home() {
 
       {/* Desktop: giant text with cards scattered over it */}
       <div className="hidden md:block relative h-[840px] overflow-hidden">
-        {/* Card 1 (Lukas) — rendered first = behind text in DOM stacking order */}
-        <div className="absolute" style={{ left: testimonials[0].left, top: testimonials[0].top }}>
-          <div className={testimonials[0].rot}>
-            <TestimonialCard
-              logo={testimonials[0].logo} logoW={testimonials[0].logoW} logoH={testimonials[0].logoH}
-              quote={testimonials[0].quote} name={testimonials[0].name}
-              className="w-[353px]"
-            />
+        {testimonials[0] && (
+          <div className="absolute" style={{ left: testimonials[0].left ?? "46.9%", top: testimonials[0].top ?? 272 }}>
+            <div className={testimonials[0].rotation ?? ""}>
+              <TestimonialCard
+                logo={imgSrc(testimonials[0].logo, TESTIMONIAL_LOGO_FALLBACKS[0])}
+                logoW={testimonials[0].logo?.width ?? TESTIMONIAL_LOGO_DIMS[0].w}
+                logoH={testimonials[0].logo?.height ?? TESTIMONIAL_LOGO_DIMS[0].h}
+                quote={testimonials[0].quote}
+                name={testimonials[0].name}
+                className="w-[353px]"
+              />
+            </div>
           </div>
-        </div>
-        {/* "Testimonials" text — shifted down so top cards sit above it */}
+        )}
         <div className="absolute left-0 right-0 top-[360px] flex justify-center pointer-events-none">
-          <p
-            className="font-medium capitalize text-black text-center tracking-[-0.07em] leading-[1.1] whitespace-nowrap text-[clamp(80px,13.75vw,198px)]"
-            style={interStyle}
-          >
+          <p className="font-medium capitalize text-black text-center tracking-[-0.07em] leading-[1.1] whitespace-nowrap text-[clamp(80px,13.75vw,198px)]" style={interStyle}>
             Testimonials
           </p>
         </div>
-        {/* Cards 2-4 — rendered last = in front of text */}
-        {testimonials.slice(1).map((t) => (
-          <div key={t.name} className="absolute" style={{ left: t.left, top: t.top }}>
-            <div className={t.rot}>
+        {(testimonials as any[]).slice(1).map((t, i) => (
+          <div key={t._id} className="absolute" style={{ left: t.left ?? "0%", top: t.top ?? 0 }}>
+            <div className={t.rotation ?? ""}>
               <TestimonialCard
-                logo={t.logo} logoW={t.logoW} logoH={t.logoH}
-                quote={t.quote} name={t.name}
+                logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i + 1])}
+                logoW={t.logo?.width ?? TESTIMONIAL_LOGO_DIMS[i + 1]?.w ?? 120}
+                logoH={t.logo?.height ?? TESTIMONIAL_LOGO_DIMS[i + 1]?.h ?? 24}
+                quote={t.quote}
+                name={t.name}
                 className="w-[353px]"
               />
             </div>
           </div>
         ))}
       </div>
-
     </section>
 
     {/* News section */}
     <section id="news" className="bg-[#f3f3f3]">
 
-      {/* Mobile: title + horizontal scroll */}
+      {/* Mobile: horizontal scroll */}
       <div className="md:hidden px-4 py-16 flex flex-col gap-8">
-        <p
-          className="font-light text-[32px] text-black tracking-[-0.08em] uppercase leading-[0.86]"
-          style={interStyle}
-        >
+        <p className="font-light text-[32px] text-black tracking-[-0.08em] uppercase leading-[0.86]" style={interStyle}>
           Keep up with my latest news &amp; achievements
         </p>
         <div className="-mx-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-4 px-4 pb-4 snap-x snap-mandatory">
-            {newsItems.map((item, i) => (
+            {(newsItems as any[]).map((item, i) => (
               <NewsCard
-                key={i}
-                img={item.img}
+                key={item._id}
+                img={imgSrc(item.image, NEWS_FALLBACKS[i])}
                 text={item.text}
                 imgHeight="h-[398px]"
                 className="w-[300px] shrink-0 snap-start"
@@ -758,54 +584,41 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Desktop: rotated title + 3 staggered cards with dividers */}
-      {/* overflow-hidden prevents side-scroll during fluid resize */}
+      {/* Desktop: rotated title + 3 staggered cards */}
       <div className="hidden md:block px-8 py-[120px] overflow-hidden">
         <div className="max-w-[1440px] mx-auto flex items-end justify-between">
-
-          {/* Left: title rotated -90° */}
           <div className="flex h-[706px] w-[110px] shrink-0 items-center justify-center">
             <div className="-rotate-90">
-              <div
-                className="flex flex-col font-light text-[64px] text-black tracking-[-0.08em] uppercase leading-[0.86] whitespace-nowrap"
-                style={interStyle}
-              >
+              <div className="flex flex-col font-light text-[64px] text-black tracking-[-0.08em] uppercase leading-[0.86] whitespace-nowrap" style={interStyle}>
                 <p>Keep up with my latest</p>
                 <p>News &amp; achievements</p>
               </div>
             </div>
           </div>
-
-          {/* Right: 3 fluid-width cards + thin dividers
-              Formula guarantees ≥30px gap between title and first card:
-              card_width = (100vw - 64px padding - 110px title - 30px gap - 2px dividers - 4×31px flex-gaps) / 3
-                         = (100vw - 330px) / 3, capped at 353px */}
           <div className="flex items-start gap-[31px]">
             <NewsCard
-              img={newsItems[0].img}
-              text={newsItems[0].text}
+              img={imgSrc(newsItems[0]?.image, NEWS_FALLBACKS[0])}
+              text={newsItems[0]?.text ?? ""}
               imgHeight="aspect-[353/469]"
               className="w-[min(353px,calc((100vw_-_330px)_/_3))]"
             />
             <div className="w-px self-stretch bg-[#c8c8c8]" />
             <NewsCard
-              img={newsItems[1].img}
-              text={newsItems[1].text}
+              img={imgSrc(newsItems[1]?.image, NEWS_FALLBACKS[1])}
+              text={newsItems[1]?.text ?? ""}
               imgHeight="aspect-[353/469]"
               className="w-[min(353px,calc((100vw_-_330px)_/_3))] pt-[120px]"
             />
             <div className="w-px self-stretch bg-[#c8c8c8]" />
             <NewsCard
-              img={newsItems[2].img}
-              text={newsItems[2].text}
+              img={imgSrc(newsItems[2]?.image, NEWS_FALLBACKS[2])}
+              text={newsItems[2]?.text ?? ""}
               imgHeight="aspect-[353/469]"
               className="w-[min(353px,calc((100vw_-_330px)_/_3))]"
             />
           </div>
-
         </div>
       </div>
-
     </section>
 
     {/* Footer */}
@@ -813,8 +626,6 @@ export default function Home() {
 
       {/* Mobile footer */}
       <div className="md:hidden pt-[48px] px-4 flex flex-col gap-[48px]">
-
-        {/* Top: headline + socials + rule */}
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4">
             <p className="uppercase text-[24px] font-light italic text-white leading-[1.1] tracking-[-0.04em]" style={interStyle}>
@@ -832,8 +643,6 @@ export default function Home() {
           </div>
           <div className="border-t border-white" />
         </div>
-
-        {/* Bottom: legal + coded by + H.Studio overflowing */}
         <div className="h-[150px] flex flex-col gap-[16px] overflow-hidden">
           <div className="flex gap-6 justify-center">
             <a href="#" className="uppercase text-[12px] text-white underline" style={interStyle}>Licences</a>
@@ -844,17 +653,13 @@ export default function Home() {
             H.Studio
           </p>
         </div>
-
       </div>
 
       {/* Desktop footer */}
       <div className="hidden md:block pt-[48px] px-8">
         <div className="max-w-[1440px] mx-auto flex flex-col gap-[120px]">
-
-          {/* Section 1: 3-column row + rule */}
           <div className="flex flex-col gap-12">
             <div className="flex items-start justify-between">
-              {/* Left: headline + button */}
               <div className="flex flex-col gap-4 w-[298px]">
                 <p className="uppercase text-[24px] font-light italic text-white leading-[1.1] tracking-[-0.04em]" style={interStyle}>
                   Have a <span className="font-bold not-italic">project</span> in mind?
@@ -863,12 +668,10 @@ export default function Home() {
                   Let&apos;s talk
                 </button>
               </div>
-              {/* Center: Facebook + Instagram */}
               <div className="flex flex-col gap-1.5 w-[298px] items-center">
                 <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Facebook</a>
                 <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Instagram</a>
               </div>
-              {/* Right: x.com + Linkedin */}
               <div className="flex flex-col gap-1.5 w-[298px] items-end">
                 <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>x.com</a>
                 <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Linkedin</a>
@@ -876,50 +679,24 @@ export default function Home() {
             </div>
             <div className="border-t border-white" />
           </div>
-
-          {/* Section 2: H.Studio + legal
-              At 1440px viewport the content area is 1376px.
-              H.Studio at 290px ≈ 1271px + coded-by 23px + legal 110px = 1404px → 28px overflow.
-              Formula derived so total always fits with ~20px gap from 1440px up to 1504px (where
-              max-w-[1440px] takes over), then holds at 290px above that.
-              [overflow-y:clip] is used (not overflow-hidden) because clip does NOT affect the
-              container's intrinsic width, so the container stays exactly text-wide and the right
-              side of the 'o' is never clipped. */}
           <div className="flex items-end justify-between">
-            {/* Left: [ Coded By Claude ] vertical + H.Studio bottom-clipped */}
             <div className="flex items-end gap-2">
-              {/* [ Coded By Claude ] rotated -90°, height scales proportionally */}
-              <div
-                className="w-[15px] flex items-center justify-center shrink-0"
-                style={{ height: "clamp(70px, calc(12.59vw - 27.33px), 160px)" }}
-              >
+              <div className="w-[15px] flex items-center justify-center shrink-0" style={{ height: "clamp(70px, calc(12.59vw - 27.33px), 160px)" }}>
                 <div className="-rotate-90">
-                  <span className="text-[12px] text-white whitespace-nowrap" style={monoStyle}>
-                    [ Coded By Claude ]
-                  </span>
+                  <span className="text-[12px] text-white whitespace-nowrap" style={monoStyle}>[ Coded By Claude ]</span>
                 </div>
               </div>
-              {/* H.Studio: [overflow-y:clip] clips only the bottom descenders;
-                  overflow-x stays visible so the container width = text width exactly */}
-              <div
-                className="[overflow-y:clip]"
-                style={{ height: "clamp(95px, calc(17.23vw - 37.38px), 219px)" }}
-              >
-                <p
-                  className="font-semibold capitalize text-white tracking-[-0.06em] leading-[0.8] whitespace-nowrap"
-                  style={{ ...interStyle, fontSize: "clamp(126px, calc(22.82vw - 49.51px), 290px)" }}
-                >
+              <div className="[overflow-y:clip]" style={{ height: "clamp(95px, calc(17.23vw - 37.38px), 219px)" }}>
+                <p className="font-semibold capitalize text-white tracking-[-0.06em] leading-[0.8] whitespace-nowrap" style={{ ...interStyle, fontSize: "clamp(126px, calc(22.82vw - 49.51px), 290px)" }}>
                   H.Studio
                 </p>
               </div>
             </div>
-            {/* Right: legal links */}
             <div className="flex flex-col gap-1 items-end pb-8 shrink-0">
               <a href="#" className="uppercase text-[12px] text-white underline" style={interStyle}>licences</a>
               <a href="#" className="uppercase text-[12px] text-white underline" style={interStyle}>Privacy policy</a>
             </div>
           </div>
-
         </div>
       </div>
 
