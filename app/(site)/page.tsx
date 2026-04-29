@@ -3,6 +3,8 @@ import { sanityFetch } from "@/sanity/lib/live";
 import { urlFor } from "@/sanity/lib/image";
 import { defineQuery } from "groq";
 
+export const dynamic = 'force-dynamic';
+
 const interStyle = { fontFamily: "var(--inter)" };
 const playfairStyle = { fontFamily: "var(--playfair)" };
 const monoStyle = { fontFamily: "var(--font-geist-mono)" };
