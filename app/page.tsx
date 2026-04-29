@@ -5,62 +5,62 @@ const playfairStyle = { fontFamily: "var(--playfair)" };
 const monoStyle = { fontFamily: "var(--font-geist-mono)" };
 
 const heroImage =
-  "https://www.figma.com/api/mcp/asset/7fbe1000-0267-4c96-953f-f25777c56836";
+  "/images/hero.png";
 
 const profilePhoto =
-  "https://www.figma.com/api/mcp/asset/df6c6a35-79f9-4d75-9d80-31254b74eb24";
+  "/images/profile.png";
 
 const photographerPhoto =
-  "https://www.figma.com/api/mcp/asset/15e43864-f5c6-4d32-ad7d-7b916ee319d1";
+  "/images/photographer.png";
 
 const arrowIcon =
-  "https://www.figma.com/api/mcp/asset/1b96a979-83ee-4549-99de-f4147d0d8310";
+  "/images/arrow-icon.svg";
 
 const services = [
   {
     num: "[ 1 ]",
     name: "Brand Discovery",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "https://www.figma.com/api/mcp/asset/4b75b69a-aa6f-4088-97fe-291d53b71686",
+    img: "/images/service-1.png",
   },
   {
     num: "[ 2 ]",
     name: "Web design & Dev",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "https://www.figma.com/api/mcp/asset/8cbf2a1d-1448-4153-aa4e-e8646bd45a08",
+    img: "/images/service-2.png",
   },
   {
     num: "[ 3 ]",
     name: "Marketing",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "https://www.figma.com/api/mcp/asset/bbacd6b0-e617-4fbf-b274-6f906803e7d2",
+    img: "/images/service-3.png",
   },
   {
     num: "[ 4 ]",
     name: "Photography",
     desc: "Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.",
-    img: "https://www.figma.com/api/mcp/asset/01655ee2-076c-437c-afa3-0793e0088dfe",
+    img: "/images/service-4.png",
   },
 ];
 
 const newsItems = [
   {
-    img: "https://www.figma.com/api/mcp/asset/7a3fbbce-0217-4a6f-97fd-123a71854c29",
+    img: "/images/news-1.png",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
-    img: "https://www.figma.com/api/mcp/asset/371858ae-3a86-411f-ae1b-6dd1c8b754a1",
+    img: "/images/news-2.png",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
-    img: "https://www.figma.com/api/mcp/asset/dce1e5f2-e263-4191-b384-a2cc74183367",
+    img: "/images/news-3.png",
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
 ];
 
 const testimonials = [
   {
-    logo: "https://www.figma.com/api/mcp/asset/44e5e0e9-3681-4249-9eed-97c302bd3907",
+    logo: "/images/testimonial-logo-1.png",
     logoW: 138, logoH: 19,
     quote: "Professional, precise, and incredibly fast at handling complex product visualizations and templates.",
     name: "Lukas Weber",
@@ -68,7 +68,7 @@ const testimonials = [
     left: "46.9%", top: 272,
   },
   {
-    logo: "https://www.figma.com/api/mcp/asset/5c4fdf36-f7e6-4b8b-9d44-d1cdf31b9189",
+    logo: "/images/testimonial-logo-2.png",
     logoW: 143, logoH: 19,
     quote: "A brilliant creative partner who transformed our vision into a unique, high-impact brand identity. Their ability to craft everything from custom mascots to polished logos is truly impressive.",
     name: "Marko Stojković",
@@ -76,7 +76,7 @@ const testimonials = [
     left: "7.1%", top: 142,
   },
   {
-    logo: "https://www.figma.com/api/mcp/asset/5cdaba81-0bb7-44b7-ac4f-f8d5c02d0089",
+    logo: "/images/testimonial-logo-3.png",
     logoW: 109, logoH: 31,
     quote: "A strategic partner who balances stunning aesthetics with high-performance UX for complex platforms. They don't just make things look good; they solve business problems through visual clarity.",
     name: "Sarah Jenkins",
@@ -84,7 +84,7 @@ const testimonials = [
     left: "21.2%", top: 553,
   },
   {
-    logo: "https://www.figma.com/api/mcp/asset/390cf2d3-f326-4d6b-83ac-7956fa767825",
+    logo: "/images/testimonial-logo-4.png",
     logoW: 81, logoH: 36,
     quote: "An incredibly versatile designer who delivers consistent quality across a wide range of styles and formats.",
     name: "Sofia Martínez",
@@ -97,25 +97,25 @@ const portfolioProjects = [
   {
     title: "Surfers Paradise",
     tags: ["Social Media", "Photography"],
-    img: "https://www.figma.com/api/mcp/asset/e7113a03-cef3-4d8d-8f7a-d06fa854234b",
+    img: "/images/portfolio-1.png",
     desktopHeight: "h-[744px]",
   },
   {
     title: "Cyberpunk Caffe",
     tags: ["Social Media", "Photography"],
-    img: "https://www.figma.com/api/mcp/asset/4948bc09-2fb6-4a8f-910f-6a5fb2922732",
+    img: "/images/portfolio-2.png",
     desktopHeight: "h-[699px]",
   },
   {
     title: "Agency 976",
     tags: ["Social Media", "Photography"],
-    img: "https://www.figma.com/api/mcp/asset/255642fe-6524-41d7-b5e8-5404c46319b2",
+    img: "/images/portfolio-3.png",
     desktopHeight: "h-[699px]",
   },
   {
     title: "Minimal Playground",
     tags: ["Social Media", "Photography"],
-    img: "https://www.figma.com/api/mcp/asset/174bf314-66be-46fe-a96f-bfe483d84be5",
+    img: "/images/portfolio-4.png",
     desktopHeight: "h-[744px]",
   },
 ];
