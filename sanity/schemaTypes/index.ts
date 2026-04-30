@@ -4,6 +4,7 @@ import { newsItem } from './newsItem'
 import { testimonial } from './testimonial'
 import { portfolioProject } from './portfolioProject'
 import { siteSettings } from './siteSettings'
+import { aboutPage } from './aboutPage'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   service,
@@ -11,4 +12,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   testimonial,
   portfolioProject,
   siteSettings,
+  aboutPage,
 ]

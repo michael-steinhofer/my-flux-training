@@ -37,8 +37,15 @@ export default defineConfig({
                     S.documentTypeListItem('newsItem').title('News Items'),
                   ])
               ),
+            S.listItem()
+              .title('About Page')
+              .child(
+                S.document()
+                  .schemaType('aboutPage')
+                  .documentId('aboutPage')
+              ),
             // Add future pages here at this level, e.g.:
-            // S.listItem().title('About Page').child(...)
+            // S.listItem().title('Services Page').child(...)
           ]),
     }),
     visionTool(),
