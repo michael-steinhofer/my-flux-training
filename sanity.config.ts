@@ -11,7 +11,38 @@ export default defineConfig({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
 
-  plugins: [structureTool(), visionTool()],
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title('Content')
+          .items([
+            S.listItem()
+              .title('Homepage')
+              .child(
+                S.list()
+                  .title('Homepage')
+                  .items([
+                    // Singleton — opens directly to the document
+                    S.listItem()
+                      .title('Site Settings')
+                      .child(
+                        S.document()
+                          .schemaType('siteSettings')
+                          .documentId('siteSettings')
+                      ),
+                    S.documentTypeListItem('service').title('Services'),
+                    S.documentTypeListItem('portfolioProject').title('Portfolio Projects'),
+                    S.documentTypeListItem('testimonial').title('Testimonials'),
+                    S.documentTypeListItem('newsItem').title('News Items'),
+                  ])
+              ),
+            // Add future pages here at this level, e.g.:
+            // S.listItem().title('About Page').child(...)
+          ]),
+    }),
+    visionTool(),
+  ],
 
   schema: {
     types: schemaTypes,
