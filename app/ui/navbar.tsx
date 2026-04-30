@@ -4,6 +4,9 @@ import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 
 const navLinks = ["About", "Services", "Projects", "News", "Contact"];
+const navHrefs: Record<string, string> = {
+  About: "/about",
+};
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const underlineRef = useRef<HTMLSpanElement>(null);
@@ -104,7 +107,7 @@ export default function Navbar() {
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-14">
           {navLinks.map((link) => (
-            <NavLink key={link} href={`#${link.toLowerCase()}`}>
+            <NavLink key={link} href={navHrefs[link] ?? `#${link.toLowerCase()}`}>
               {link}
             </NavLink>
           ))}
@@ -152,7 +155,7 @@ export default function Navbar() {
         {navLinks.map((link, i) => (
           <a
             key={link}
-            href={`#${link.toLowerCase()}`}
+            href={navHrefs[link] ?? `#${link.toLowerCase()}`}
             ref={(el) => { itemRefs.current[i] = el; }}
             className="text-[16px] font-semibold text-white tracking-[-0.64px] capitalize"
             style={{ fontFamily: "var(--inter)" }}
