@@ -97,12 +97,13 @@ export default function Navbar() {
       <div className="relative z-10 flex items-center justify-between py-6 w-full">
 
         {/* Logo */}
-        <span
+        <a
+          href="/"
           className="text-[16px] font-semibold text-black tracking-[-0.64px] capitalize"
           style={{ fontFamily: "var(--inter)" }}
         >
           H.Studio
-        </span>
+        </a>
 
         {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-14">
