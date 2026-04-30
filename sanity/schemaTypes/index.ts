@@ -4,7 +4,11 @@ import { newsItem } from './newsItem'
 import { testimonial } from './testimonial'
 import { portfolioProject } from './portfolioProject'
 import { siteSettings } from './siteSettings'
-import { aboutPage } from './aboutPage'
+import { aboutHero } from './aboutHero'
+import { aboutStory } from './aboutStory'
+import { aboutValues } from './aboutValues'
+import { aboutTeam } from './aboutTeam'
+import { aboutProcess } from './aboutProcess'
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   service,
@@ -12,5 +16,9 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   testimonial,
   portfolioProject,
   siteSettings,
-  aboutPage,
+  aboutHero,
+  aboutStory,
+  aboutValues,
+  aboutTeam,
+  aboutProcess,
 ]

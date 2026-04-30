@@ -40,9 +40,25 @@ export default defineConfig({
             S.listItem()
               .title('About Page')
               .child(
-                S.document()
-                  .schemaType('aboutPage')
-                  .documentId('aboutPage')
+                S.list()
+                  .title('About Page')
+                  .items([
+                    S.listItem()
+                      .title('Hero')
+                      .child(S.document().schemaType('aboutHero').documentId('aboutHero')),
+                    S.listItem()
+                      .title('Story')
+                      .child(S.document().schemaType('aboutStory').documentId('aboutStory')),
+                    S.listItem()
+                      .title('Values')
+                      .child(S.document().schemaType('aboutValues').documentId('aboutValues')),
+                    S.listItem()
+                      .title('Team')
+                      .child(S.document().schemaType('aboutTeam').documentId('aboutTeam')),
+                    S.listItem()
+                      .title('Process')
+                      .child(S.document().schemaType('aboutProcess').documentId('aboutProcess')),
+                  ])
               ),
             // Add future pages here at this level, e.g.:
             // S.listItem().title('Services Page').child(...)
