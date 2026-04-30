@@ -1,7 +1,14 @@
 import Navbar from "../ui/navbar";
+import HoverButton from "../ui/hover-button";
+import FooterLink from "../ui/footer-link";
+import PortfolioTag from "../ui/portfolio-tag";
+import ProjectCard from "../ui/project-card";
+import NewsCard from "../ui/news-card";
+import ScrollAnimations from "../ui/scroll-animations";
 import { sanityFetch } from "@/sanity/lib/live";
 import { optimizedImg } from "@/sanity/lib/image";
 import { defineQuery } from "groq";
+import { PortableText, type PortableTextComponents } from "@portabletext/react";
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +33,7 @@ const PORTFOLIO_QUERY = defineQuery(
   `*[_type == "portfolioProject"] | order(order asc) { _id, title, tags, image, desktopHeight }`
 );
 const SETTINGS_QUERY = defineQuery(
-  `*[_type == "siteSettings"][0] { heroImage, profilePhoto, photographerPhoto }`
+  `*[_type == "siteSettings"][0] { heroImage, profilePhoto, photographerPhoto, studioBlurb }`
 );
 
 // ─── Local image fallbacks (until images are uploaded to Sanity) ─────────────
@@ -54,6 +61,18 @@ const TESTIMONIAL_LOGO_DIMS = [
   { w: 109, h: 31 },
   { w: 81, h: 36 },
 ];
+const TESTIMONIAL_ROTATIONS = [
+  "rotate-[2.9deg]",
+  "rotate-[-6.85deg]",
+  "rotate-[2.23deg]",
+  "rotate-[-4.15deg]",
+];
+const TESTIMONIAL_POSITIONS = [
+  { left: "46.9%", top: 272 },
+  { left: "7.1%",  top: 142 },
+  { left: "21.2%", top: 553 },
+  { left: "68.5%", top: 546 },
+];
 const PORTFOLIO_FALLBACKS = [
   "/images/portfolio-1.webp",
   "/images/portfolio-2.webp",
@@ -64,40 +83,31 @@ const PORTFOLIO_FALLBACKS = [
 // Shorthand used throughout this file
 const imgSrc = optimizedImg;
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+// ─── Portable Text renderer for the studio blurb ─────────────────────────────
+// Bold+italic is the base style (applied via the <p> class). Marks invert that:
+// <strong> stays bold but drops italic; <em> keeps italic but drops bold.
 
-function NewsCard({
-  img, text, imgHeight, className = "",
-}: {
-  img: string; text: string; imgHeight: string; className?: string;
-}) {
-  return (
-    <div className={`flex flex-col gap-4 ${className}`}>
-      <div className={`overflow-hidden shrink-0 ${imgHeight}`}>
-        <img src={img} alt="" className="w-full h-full object-cover" />
-      </div>
-      <p
-        className="flex-1 text-[14px] text-[#1f1f1f] font-normal leading-[1.3] tracking-[-0.56px]"
-        style={interStyle}
-      >
-        {text}
-      </p>
-      <div className="border-b border-black flex gap-[10px] items-center py-1 self-start">
-        <span
-          className="text-[14px] font-medium text-black tracking-[-0.56px] whitespace-nowrap"
-          style={interStyle}
-        >
-          Read more
-        </span>
-        <div className="flex items-center justify-center size-[18px]">
-          <div className="-rotate-90">
-            <img src={arrowIcon} alt="" className="block size-[18px]" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const blurbComponents: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => <>{children}</>,
+  },
+  marks: {
+    strong: ({ children }) => <span className="font-bold not-italic">{children}</span>,
+    em: ({ children }) => <span className="font-normal italic">{children}</span>,
+  },
+};
+
+const BLURB_FALLBACK = (
+  <>
+    H.Studio is a{" "}
+    <span className="font-normal not-italic">full-service</span>{" "}
+    creative studio creating beautiful digital experiences and products. We are an{" "}
+    <span className="font-normal not-italic">award winning</span>{" "}
+    design and art group specializing in branding, web design and engineering.
+  </>
+);
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function TestimonialCard({
   logo, logoW, logoH, quote, name, className = "",
@@ -129,16 +139,6 @@ function TestimonialCard({
   );
 }
 
-function ProjectArrow() {
-  return (
-    <div className="flex items-center justify-center shrink-0 size-8">
-      <div className="-rotate-90">
-        <img src={arrowIcon} alt="" className="block size-8" />
-      </div>
-    </div>
-  );
-}
-
 function CornerBracket({ className = "" }: { className?: string }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={className}>
@@ -162,50 +162,16 @@ function PortfolioCta() {
           Discover how my creativity transforms ideas into impactful digital
           experiences — schedule a call with me to get started.
         </p>
-        <button
+        <HoverButton
           className="cursor-pointer bg-black text-white text-[14px] font-medium tracking-[-0.56px] px-4 py-3 rounded-full"
           style={interStyle}
         >
           Let&apos;s talk
-        </button>
+        </HoverButton>
       </div>
       <div className="flex flex-col justify-between self-stretch w-6 shrink-0">
         <CornerBracket className="rotate-90" />
         <CornerBracket className="rotate-180" />
-      </div>
-    </div>
-  );
-}
-
-function ProjectCard({
-  img, title, tags, height, titleSize,
-}: {
-  img: string; title: string; tags: string[]; height: string; titleSize: string;
-}) {
-  return (
-    <div className="flex flex-col gap-[10px]">
-      <div className={`relative overflow-hidden ${height}`}>
-        <img src={img} alt="" className="w-full h-full object-cover" />
-        <div className="absolute bottom-4 left-4 flex gap-3">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className="backdrop-blur-[10px] bg-[rgba(255,255,255,0.3)] px-2 py-1 rounded-full text-[14px] font-medium text-[#111] tracking-[-0.56px] whitespace-nowrap"
-              style={interStyle}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <p
-          className={`font-black ${titleSize} text-black tracking-[-0.04em] uppercase leading-[1.1] whitespace-nowrap`}
-          style={interStyle}
-        >
-          {title}
-        </p>
-        <ProjectArrow />
       </div>
     </div>
   );
@@ -236,10 +202,10 @@ export default async function Home() {
   return (
     <>
     <section className="relative overflow-hidden min-h-screen">
-      <div className="relative flex flex-col min-h-screen justify-between md:justify-start md:gap-[240px] px-4 md:px-8 pb-6 md:pb-0">
+      <div className="relative flex flex-col min-h-screen px-4 md:px-8 pb-[60px] md:pb-[120px]">
 
         {/* Background image — desktop */}
-        <div className="hidden md:block pointer-events-none absolute -translate-y-1/2 aspect-[2291/1346] left-[-34.79%] right-[-34.79%] top-[calc(50%+88.84px)]">
+        <div className="hidden md:block pointer-events-none absolute top-0 left-[-34.79%] right-[-34.79%] aspect-[2291/1346]">
           <img src={heroImage} alt="" className="absolute inset-0 max-w-none size-full" />
         </div>
 
@@ -253,10 +219,10 @@ export default async function Home() {
 
         <Navbar />
 
-        {/* Hero block */}
-        <div className="flex flex-col justify-between h-[341px] md:h-auto md:justify-start md:w-full">
-          <div className="flex flex-col pb-[15px]">
-            <div className="flex justify-center md:justify-start px-[18px] -mb-[15px]">
+        {/* Hero name block — in normal flow so mix-blend-overlay composites correctly */}
+        <div className="mt-auto flex justify-center">
+          <div className="flex flex-col items-center">
+            <div className="mb-[30px] md:-mb-[15px]">
               <p
                 className="text-[14px] text-white uppercase mix-blend-overlay leading-[1.1] whitespace-nowrap"
                 style={{ fontFamily: "var(--font-geist-mono)" }}
@@ -265,33 +231,11 @@ export default async function Home() {
               </p>
             </div>
             <h1
-              className="font-medium capitalize text-[96px] md:text-[13.75vw] text-white text-center w-full leading-[0.8] md:leading-[1.1] tracking-[-0.07em] mix-blend-overlay whitespace-pre-wrap md:whitespace-pre -mb-[15px]"
+              className="font-medium capitalize text-[64px] md:text-[11vw] text-white text-center leading-[0.8] md:leading-[1.1] tracking-[-0.07em] mix-blend-overlay whitespace-pre-wrap md:whitespace-pre"
               style={{ fontFamily: "var(--inter)" }}
             >
-              {"Harvey   Specter"}
+              {"Michael Steinhofer"}
             </h1>
-          </div>
-          <div className="flex md:justify-end">
-            <div className="flex flex-col gap-[17px] w-[293px]">
-              <p
-                className="font-bold italic text-[14px] text-[#1f1f1f] tracking-[-0.56px] uppercase leading-[1.1]"
-                style={{ fontFamily: "var(--inter)" }}
-              >
-                H.Studio is a{" "}
-                <span className="font-normal not-italic">full-service</span>{" "}
-                creative studio creating beautiful digital experiences and
-                products. We are an{" "}
-                <span className="font-normal not-italic">award winning</span>{" "}
-                design and art group specializing in branding, web design and
-                engineering.
-              </p>
-              <button
-                className="self-start cursor-pointer font-medium text-[14px] text-white tracking-[-0.56px] bg-black px-4 py-3 rounded-full whitespace-nowrap"
-                style={{ fontFamily: "var(--inter)" }}
-              >
-                Let&apos;s talk
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -300,6 +244,25 @@ export default async function Home() {
     {/* About section */}
     <section id="about" className="bg-[#fafafa]">
       <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-12 md:py-[120px]">
+
+      {/* H.Studio blurb */}
+      <div data-animate="fade-up" style={{ opacity: 0 }} className="flex flex-col items-start md:items-center gap-[17px] md:gap-6 mb-6">
+        <p
+          className="font-bold italic text-[14px] md:text-[18px] text-[#1f1f1f] tracking-[-0.56px] md:tracking-[-0.72px] uppercase leading-[1.1] w-[293px] md:w-[655px]"
+          style={interStyle}
+        >
+          {settings?.studioBlurb?.length
+            ? <PortableText value={settings.studioBlurb} components={blurbComponents} />
+            : BLURB_FALLBACK}
+        </p>
+        <HoverButton
+          className="cursor-pointer font-medium text-[14px] text-white tracking-[-0.56px] bg-black px-4 py-3 rounded-full whitespace-nowrap"
+          style={interStyle}
+        >
+          Let&apos;s talk
+        </HoverButton>
+      </div>
+
       <div className="flex flex-col gap-3 items-end mb-6">
         <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1] text-right" style={monoStyle}>
           [ 8+ years in industry ]
@@ -307,28 +270,28 @@ export default async function Home() {
         <div className="w-full border-t border-[#1f1f1f]" />
       </div>
       <div className="flex flex-col gap-2 uppercase">
-        <div className="flex flex-col-reverse items-center md:flex-row md:items-start gap-3">
+        <div data-animate="from-right" style={{ opacity: 0 }} className="flex flex-col-reverse items-center md:flex-row md:items-start gap-3">
           <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-pre" style={interStyle}>
             {"A creative director   /"}
           </p>
           <p className="text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>001</p>
         </div>
-        <div className="flex justify-center md:justify-start md:pl-[15.6%]">
+        <div data-animate="from-left" style={{ opacity: 0 }} className="flex justify-center md:justify-start md:pl-[15.6%]">
           <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             Photographer
           </p>
         </div>
-        <div className="flex justify-center md:justify-start md:pl-[44.3%]">
+        <div data-animate="from-right" style={{ opacity: 0 }} className="flex justify-center md:justify-start md:pl-[44.3%]">
           <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             Born <span style={playfairStyle}>&amp;</span> raised
           </p>
         </div>
-        <div className="flex justify-center md:justify-start">
+        <div data-animate="from-left" style={{ opacity: 0 }} className="flex justify-center md:justify-start">
           <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             on the south side
           </p>
         </div>
-        <div className="flex flex-col items-center md:items-start md:pl-[44%] [@media(min-width:1440px)]:flex-row [@media(min-width:1440px)]:items-end gap-3">
+        <div data-animate="from-right" style={{ opacity: 0 }} className="flex flex-col items-center md:items-start md:pl-[44%] [@media(min-width:1440px)]:flex-row [@media(min-width:1440px)]:items-end gap-3">
           <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84] whitespace-nowrap" style={interStyle}>
             of chicago.
           </p>
@@ -342,17 +305,17 @@ export default async function Home() {
 
     {/* Profile / Bio section */}
     <section className="bg-white px-4 md:px-8 py-12 md:py-20">
-      <div className="max-w-[1440px] mx-auto">
-        <div className="flex flex-col gap-5 mb-5 md:hidden">
+      <div data-animate-group className="max-w-[1440px] mx-auto">
+        <div data-animate-delay="0" style={{ opacity: 0 }} className="flex flex-col gap-5 mb-5 md:hidden">
           <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>002</p>
           <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>[ About ]</p>
         </div>
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-          <p className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1] whitespace-nowrap" style={monoStyle}>
+          <p data-animate-delay="0" style={{ opacity: 0, ...monoStyle }} className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1] whitespace-nowrap">
             [ About ]
           </p>
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:gap-8 md:w-[clamp(600px,calc(160px_+_57vw),983px)]">
-            <div className="flex items-stretch gap-3 flex-1">
+            <div data-animate-delay="0.4" style={{ opacity: 0 }} className="flex items-stretch gap-3 flex-1">
               <div className="flex flex-col justify-between w-6 shrink-0">
                 <CornerBracket />
                 <CornerBracket className="-rotate-90" />
@@ -365,7 +328,7 @@ export default async function Home() {
                 <CornerBracket className="rotate-180" />
               </div>
             </div>
-            <div className="flex items-start gap-6 shrink-0">
+            <div data-animate-delay="0.2" style={{ opacity: 0 }} className="flex items-start gap-6 shrink-0">
               <p className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>002</p>
               <div className="w-full md:w-[436px] aspect-[436/614] overflow-hidden">
                 <img src={profilePhoto} alt="" className="w-full h-full object-cover" />
@@ -377,17 +340,23 @@ export default async function Home() {
     </section>
 
     {/* Full-bleed photo section */}
-    <section className="w-full aspect-[375/565] md:aspect-[8/5] overflow-hidden">
-      <img src={photographerPhoto} alt="" className="w-full h-full object-cover" />
+    <section className="w-full aspect-[375/565] md:aspect-[8/5] overflow-hidden bg-black">
+      <img
+        data-animate="blur-reveal"
+        src={photographerPhoto}
+        alt=""
+        className="w-full h-full object-cover"
+        style={{ opacity: 0.5, filter: "blur(12px)" }}
+      />
     </section>
 
     {/* Services section */}
     <section id="services" className="bg-black px-4 md:px-8 py-12 md:py-20">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-8 md:gap-12">
-        <p className="text-[14px] text-white uppercase leading-[1.1] whitespace-nowrap" style={monoStyle}>
+      <div data-animate-group className="max-w-[1440px] mx-auto flex flex-col gap-8 md:gap-12">
+        <p data-animate-delay="0" style={{ opacity: 0, ...monoStyle }} className="text-[14px] text-white uppercase leading-[1.1] whitespace-nowrap">
           [ services ]
         </p>
-        <div className="flex items-center justify-between uppercase text-white whitespace-nowrap">
+        <div data-animate-delay="0.2" style={{ opacity: 0 }} className="flex items-center justify-between uppercase text-white whitespace-nowrap">
           <span className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] tracking-[-0.08em] leading-normal" style={interStyle}>
             [{services.length}]
           </span>
@@ -397,7 +366,7 @@ export default async function Home() {
         </div>
         <div className="flex flex-col gap-12">
           {(services as any[]).map((service, i) => (
-            <div key={service._id} className="flex flex-col gap-3">
+            <div key={service._id} data-animate="fade-up" style={{ opacity: 0 }} className="flex flex-col gap-3">
               <div className="flex flex-col gap-[9px]">
                 <p className="text-[14px] text-white uppercase leading-[1.1]" style={monoStyle}>
                   {service.num}
@@ -405,7 +374,7 @@ export default async function Home() {
                 <div className="w-full border-t border-white" />
               </div>
               <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start md:justify-between">
-                <p className="font-bold italic text-[36px] text-white tracking-[-0.04em] leading-[1.1] uppercase whitespace-nowrap" style={interStyle}>
+                <p className="font-bold italic text-[36px] text-white tracking-[-0.04em] leading-[1.1] uppercase md:whitespace-nowrap" style={interStyle}>
                   {service.name}
                 </p>
                 <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:gap-6 items-start">
@@ -426,7 +395,7 @@ export default async function Home() {
     {/* Portfolio / Selected Work section */}
     <section id="projects" className="bg-white px-4 md:px-8 py-12 md:py-20">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-8 md:gap-[61px]">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-0 uppercase">
+        <div data-portfolio-header style={{ opacity: 0 }} className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-0 uppercase">
           <p className="md:hidden text-[14px] text-[#1f1f1f] leading-[1.1]" style={monoStyle}>[ portfolio ]</p>
           <div className="flex items-start gap-[10px]">
             <div className="flex flex-col font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.86]" style={interStyle}>
@@ -443,54 +412,67 @@ export default async function Home() {
         </div>
 
         {/* Mobile: single column */}
-        <div className="flex flex-col gap-6 md:hidden">
+        <div className="flex flex-col gap-6 md:hidden" data-portfolio-mobile>
           {(portfolioProjects as any[]).map((p, i) => (
-            <ProjectCard
-              key={p._id}
-              img={imgSrc(p.image, PORTFOLIO_FALLBACKS[i])}
-              title={p.title}
-              tags={p.tags ?? []}
-              height="h-[390px]"
-              titleSize="text-[24px]"
-            />
+            <div key={p._id} data-portfolio-card style={{ opacity: 0 }}>
+              <ProjectCard
+                img={imgSrc(p.image, PORTFOLIO_FALLBACKS[i])}
+                title={p.title}
+                tags={p.tags ?? []}
+                height="h-[390px]"
+                titleSize="text-[24px]"
+              />
+            </div>
           ))}
-          <PortfolioCta />
+          <div data-portfolio-card style={{ opacity: 0 }}>
+            <PortfolioCta />
+          </div>
         </div>
 
         {/* Desktop: two-column masonry */}
-        <div className="hidden md:flex gap-6 items-end">
+        <div data-portfolio-desktop className="hidden md:flex gap-6 items-end">
           <div className="flex flex-col flex-1 self-stretch justify-between">
-            <ProjectCard
-              img={imgSrc(portfolioProjects[0]?.image, PORTFOLIO_FALLBACKS[0])}
-              title={portfolioProjects[0]?.title ?? ""}
-              tags={portfolioProjects[0]?.tags ?? []}
-              height={portfolioProjects[0]?.desktopHeight ?? "h-[744px]"}
-              titleSize="text-[36px]"
-            />
-            <ProjectCard
-              img={imgSrc(portfolioProjects[1]?.image, PORTFOLIO_FALLBACKS[1])}
-              title={portfolioProjects[1]?.title ?? ""}
-              tags={portfolioProjects[1]?.tags ?? []}
-              height={portfolioProjects[1]?.desktopHeight ?? "h-[699px]"}
-              titleSize="text-[36px]"
-            />
-            <PortfolioCta />
+            <div data-animate-delay="0" style={{ opacity: 0 }}>
+              <ProjectCard
+                img={imgSrc(portfolioProjects[0]?.image, PORTFOLIO_FALLBACKS[0])}
+                title={portfolioProjects[0]?.title ?? ""}
+                tags={portfolioProjects[0]?.tags ?? []}
+                height={portfolioProjects[0]?.desktopHeight ?? "h-[744px]"}
+                titleSize="text-[36px]"
+              />
+            </div>
+            <div data-animate-delay="0.2" style={{ opacity: 0 }}>
+              <ProjectCard
+                img={imgSrc(portfolioProjects[1]?.image, PORTFOLIO_FALLBACKS[1])}
+                title={portfolioProjects[1]?.title ?? ""}
+                tags={portfolioProjects[1]?.tags ?? []}
+                height={portfolioProjects[1]?.desktopHeight ?? "h-[699px]"}
+                titleSize="text-[36px]"
+              />
+            </div>
+            <div data-animate-delay="0.8" style={{ opacity: 0 }}>
+              <PortfolioCta />
+            </div>
           </div>
           <div className="flex flex-col flex-1 gap-[117px] pt-[240px]">
-            <ProjectCard
-              img={imgSrc(portfolioProjects[2]?.image, PORTFOLIO_FALLBACKS[2])}
-              title={portfolioProjects[2]?.title ?? ""}
-              tags={portfolioProjects[2]?.tags ?? []}
-              height={portfolioProjects[2]?.desktopHeight ?? "h-[699px]"}
-              titleSize="text-[36px]"
-            />
-            <ProjectCard
-              img={imgSrc(portfolioProjects[3]?.image, PORTFOLIO_FALLBACKS[3])}
-              title={portfolioProjects[3]?.title ?? ""}
-              tags={portfolioProjects[3]?.tags ?? []}
-              height={portfolioProjects[3]?.desktopHeight ?? "h-[744px]"}
-              titleSize="text-[36px]"
-            />
+            <div data-animate-delay="0.4" style={{ opacity: 0 }}>
+              <ProjectCard
+                img={imgSrc(portfolioProjects[2]?.image, PORTFOLIO_FALLBACKS[2])}
+                title={portfolioProjects[2]?.title ?? ""}
+                tags={portfolioProjects[2]?.tags ?? []}
+                height={portfolioProjects[2]?.desktopHeight ?? "h-[699px]"}
+                titleSize="text-[36px]"
+              />
+            </div>
+            <div data-animate-delay="0.6" style={{ opacity: 0 }}>
+              <ProjectCard
+                img={imgSrc(portfolioProjects[3]?.image, PORTFOLIO_FALLBACKS[3])}
+                title={portfolioProjects[3]?.title ?? ""}
+                tags={portfolioProjects[3]?.tags ?? []}
+                height={portfolioProjects[3]?.desktopHeight ?? "h-[744px]"}
+                titleSize="text-[36px]"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -500,14 +482,14 @@ export default async function Home() {
     <section id="testimonials" className="bg-[#fafafa]">
 
       {/* Mobile: horizontal scroll carousel */}
-      <div className="md:hidden px-4 py-16 flex flex-col gap-8">
-        <p className="text-[64px] font-medium capitalize text-black tracking-[-0.07em] leading-[0.8]" style={interStyle}>
+      <div className="md:hidden px-4 py-16 flex flex-col gap-8" data-testimonials="mobile">
+        <p className="text-[64px] font-medium capitalize text-black tracking-[-0.07em] leading-[0.8]" style={{ ...interStyle, opacity: 0, filter: "blur(20px)" }}>
           Testimonials
         </p>
         <div className="-mx-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-4 px-4 pt-8 pb-4 snap-x snap-mandatory">
             {(testimonials as any[]).map((t, i) => (
-              <div key={t._id} className={`snap-start flex-shrink-0 ${t.rotation ?? ""}`}>
+              <div key={t._id} className={`snap-start flex-shrink-0 ${t.rotation ?? ""}`} style={{ opacity: 0 }}>
                 <TestimonialCard
                   logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i], 300)}
                   logoW={t.logo?.width ?? TESTIMONIAL_LOGO_DIMS[i]?.w ?? 120}
@@ -523,33 +505,23 @@ export default async function Home() {
       </div>
 
       {/* Desktop: giant text with cards scattered over it */}
-      <div className="hidden md:block relative h-[840px] overflow-hidden">
-        {testimonials[0] && (
-          <div className="absolute" style={{ left: testimonials[0].left ?? "46.9%", top: testimonials[0].top ?? 272 }}>
-            <div className={testimonials[0].rotation ?? ""}>
+      <div className="hidden md:block relative h-[960px] overflow-hidden" data-testimonials="desktop">
+        {(testimonials as any[]).map((t, i) => (
+          <div
+            key={t._id}
+            className="absolute"
+            data-card-index={i}
+            style={{
+              left: t.left ?? TESTIMONIAL_POSITIONS[i]?.left ?? "0%",
+              top:  t.top  ?? TESTIMONIAL_POSITIONS[i]?.top  ?? 0,
+              opacity: 0,
+            }}
+          >
+            <div className={t.rotation ?? TESTIMONIAL_ROTATIONS[i] ?? ""}>
               <TestimonialCard
-                logo={imgSrc(testimonials[0].logo, TESTIMONIAL_LOGO_FALLBACKS[0], 300)}
-                logoW={testimonials[0].logo?.width ?? TESTIMONIAL_LOGO_DIMS[0].w}
-                logoH={testimonials[0].logo?.height ?? TESTIMONIAL_LOGO_DIMS[0].h}
-                quote={testimonials[0].quote}
-                name={testimonials[0].name}
-                className="w-[353px]"
-              />
-            </div>
-          </div>
-        )}
-        <div className="absolute left-0 right-0 top-[360px] flex justify-center pointer-events-none">
-          <p className="font-medium capitalize text-black text-center tracking-[-0.07em] leading-[1.1] whitespace-nowrap text-[clamp(80px,13.75vw,198px)]" style={interStyle}>
-            Testimonials
-          </p>
-        </div>
-        {(testimonials as any[]).slice(1).map((t, i) => (
-          <div key={t._id} className="absolute" style={{ left: t.left ?? "0%", top: t.top ?? 0 }}>
-            <div className={t.rotation ?? ""}>
-              <TestimonialCard
-                logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i + 1], 300)}
-                logoW={t.logo?.width ?? TESTIMONIAL_LOGO_DIMS[i + 1]?.w ?? 120}
-                logoH={t.logo?.height ?? TESTIMONIAL_LOGO_DIMS[i + 1]?.h ?? 24}
+                logo={imgSrc(t.logo, TESTIMONIAL_LOGO_FALLBACKS[i], 300)}
+                logoW={t.logo?.width  ?? TESTIMONIAL_LOGO_DIMS[i]?.w ?? 120}
+                logoH={t.logo?.height ?? TESTIMONIAL_LOGO_DIMS[i]?.h ?? 24}
                 quote={t.quote}
                 name={t.name}
                 className="w-[353px]"
@@ -557,6 +529,11 @@ export default async function Home() {
             </div>
           </div>
         ))}
+        <div className="absolute left-0 right-0 top-[380px] flex justify-center pointer-events-none" style={{ opacity: 0, filter: "blur(20px)" }}>
+          <p className="font-medium capitalize text-black text-center tracking-[-0.07em] leading-[1.1] whitespace-nowrap text-[clamp(80px,13.75vw,198px)]" style={interStyle}>
+            Testimonials
+          </p>
+        </div>
       </div>
     </section>
 
@@ -564,8 +541,8 @@ export default async function Home() {
     <section id="news" className="bg-[#f3f3f3]">
 
       {/* Mobile: horizontal scroll */}
-      <div className="md:hidden px-4 py-16 flex flex-col gap-8">
-        <p className="font-light text-[32px] text-black tracking-[-0.08em] uppercase leading-[0.86]" style={interStyle}>
+      <div className="md:hidden px-4 py-16 flex flex-col gap-8" data-news="mobile">
+        <p data-news-line className="font-light text-[32px] text-black tracking-[-0.08em] uppercase leading-[0.86]" style={{ ...interStyle, opacity: 0 }}>
           Keep up with my latest news &amp; achievements
         </p>
         <div className="-mx-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -584,13 +561,13 @@ export default async function Home() {
       </div>
 
       {/* Desktop: rotated title + 3 staggered cards */}
-      <div className="hidden md:block px-8 py-[120px] overflow-hidden">
+      <div className="hidden md:block px-8 py-[120px] overflow-hidden" data-news="desktop">
         <div className="max-w-[1440px] mx-auto flex items-end justify-between">
           <div className="flex h-[706px] w-[110px] shrink-0 items-center justify-center">
             <div className="-rotate-90">
               <div className="flex flex-col font-light text-[64px] text-black tracking-[-0.08em] uppercase leading-[0.86] whitespace-nowrap" style={interStyle}>
-                <p>Keep up with my latest</p>
-                <p>News &amp; achievements</p>
+                <p data-news-line style={{ opacity: 0 }}>Keep up with my latest</p>
+                <p data-news-line style={{ opacity: 0 }}>News &amp; achievements</p>
               </div>
             </div>
           </div>
@@ -621,7 +598,7 @@ export default async function Home() {
     </section>
 
     {/* Footer */}
-    <footer id="contact" className="bg-black overflow-x-hidden">
+    <footer id="contact" className="bg-black">
 
       {/* Mobile footer */}
       <div className="md:hidden pt-[48px] px-4 flex flex-col gap-[48px]">
@@ -630,15 +607,15 @@ export default async function Home() {
             <p className="uppercase text-[24px] font-light italic text-white leading-[1.1] tracking-[-0.04em]" style={interStyle}>
               Have a <span className="font-bold not-italic">project</span> in mind?
             </p>
-            <button className="self-start cursor-pointer text-[14px] font-medium text-white border border-white rounded-[24px] px-4 py-3" style={interStyle}>
+            <HoverButton className="self-start cursor-pointer text-[14px] font-medium text-white border border-white rounded-[24px] px-4 py-3" style={interStyle}>
               Let&apos;s talk
-            </button>
+            </HoverButton>
           </div>
           <div className="flex flex-col gap-2">
-            <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Facebook</a>
-            <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Instagram</a>
-            <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>x.com</a>
-            <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Linkedin</a>
+            <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Facebook</FooterLink>
+            <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Instagram</FooterLink>
+            <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>x.com</FooterLink>
+            <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Linkedin</FooterLink>
           </div>
           <div className="border-t border-white" />
         </div>
@@ -663,17 +640,17 @@ export default async function Home() {
                 <p className="uppercase text-[24px] font-light italic text-white leading-[1.1] tracking-[-0.04em]" style={interStyle}>
                   Have a <span className="font-bold not-italic">project</span> in mind?
                 </p>
-                <button className="self-start cursor-pointer text-[14px] font-medium text-white border border-white rounded-[24px] px-4 py-3" style={interStyle}>
+                <HoverButton className="self-start cursor-pointer text-[14px] font-medium text-white border border-white rounded-[24px] px-4 py-3" style={interStyle}>
                   Let&apos;s talk
-                </button>
+                </HoverButton>
               </div>
               <div className="flex flex-col gap-1.5 w-[298px] items-center">
-                <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Facebook</a>
-                <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Instagram</a>
+                <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Facebook</FooterLink>
+                <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Instagram</FooterLink>
               </div>
               <div className="flex flex-col gap-1.5 w-[298px] items-end">
-                <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>x.com</a>
-                <a href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Linkedin</a>
+                <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>x.com</FooterLink>
+                <FooterLink href="#" className="uppercase text-[18px] font-medium text-white tracking-[-0.04em]" style={interStyle}>Linkedin</FooterLink>
               </div>
             </div>
             <div className="border-t border-white" />
@@ -700,6 +677,8 @@ export default async function Home() {
       </div>
 
     </footer>
+
+    <ScrollAnimations />
     </>
   );
 }

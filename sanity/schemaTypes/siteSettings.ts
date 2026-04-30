@@ -6,6 +6,25 @@ export const siteSettings = defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'studioBlurb',
+      title: 'Studio Blurb',
+      type: 'array',
+      of: [
+        {
+          type: 'block',
+          styles: [{ title: 'Normal', value: 'normal' }],
+          lists: [],
+          marks: {
+            decorators: [
+              { title: 'Bold', value: 'strong' },
+              { title: 'Italic', value: 'em' },
+            ],
+            annotations: [],
+          },
+        },
+      ],
+    }),
+    defineField({
       name: 'heroImage',
       title: 'Hero Image',
       type: 'image',
