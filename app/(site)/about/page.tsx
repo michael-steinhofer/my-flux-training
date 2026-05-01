@@ -2,9 +2,49 @@ import Navbar from "../../ui/navbar";
 import HoverButton from "../../ui/hover-button";
 import FooterLink from "../../ui/footer-link";
 import ScrollAnimations from "../../ui/scroll-animations";
+import { sanityFetch } from "@/sanity/lib/live";
+import { optimizedImg } from "@/sanity/lib/image";
+import { defineQuery } from "groq";
 
-const interStyle  = { fontFamily: "var(--inter)" };
-const monoStyle   = { fontFamily: "var(--font-geist-mono)" };
+export const dynamic = 'force-dynamic';
+
+const interStyle = { fontFamily: "var(--inter)" };
+const monoStyle  = { fontFamily: "var(--font-geist-mono)" };
+
+// ─── GROQ Queries ────────────────────────────────────────────────────────────
+
+const HERO_QUERY    = defineQuery(`*[_type == "aboutHero"][0]   { label, headline, backgroundImage }`);
+const STORY_QUERY   = defineQuery(`*[_type == "aboutStory"][0]  { blurb, statementLines }`);
+const VALUES_QUERY  = defineQuery(`*[_type == "aboutValues"][0] { values[]{ _key, title, body } }`);
+const TEAM_QUERY    = defineQuery(`*[_type == "aboutTeam"][0]   { teamMembers[]{ _key, name, role, bio, photo } }`);
+const PROCESS_QUERY = defineQuery(`*[_type == "aboutProcess"][0]{ fullBleedPhoto, processSteps[]{ _key, num, name, desc } }`);
+
+// ─── Fallbacks ───────────────────────────────────────────────────────────────
+
+const VALUES_FALLBACK = [
+  { _key: "craft",   title: "Craft",   body: "We obsess over every detail — from the weight of a typeface to the timing of a hover state. Good work is never accidental." },
+  { _key: "clarity", title: "Clarity", body: "Great design communicates before anyone reads a word. We strip away everything that doesn't serve the message." },
+  { _key: "impact",  title: "Impact",  body: "We measure success by what changes after we ship. Beautiful work that also moves the needle is the only kind worth making." },
+];
+
+const TEAM_FALLBACK = [
+  {
+    _key: "michael",
+    name: "Michael Steinhofer",
+    role: "Creative Director & Founder",
+    bio: "Michael is a Chicago-based creative director with over a decade of experience building brands and digital products across fashion, technology, and culture. He founded H.Studio to bring together visual design, interaction design, and engineering under one roof — with quality as the non-negotiable constant.",
+    photo: null as null,
+  },
+];
+
+const STEPS_FALLBACK = [
+  { _key: "discovery", num: "01", name: "Discovery",     desc: "We start by listening. Understanding your goals, your audience, and your competitive landscape before a single pixel is placed." },
+  { _key: "strategy",  num: "02", name: "Strategy",      desc: "Every project begins with a clear plan. We map the solution, define success metrics, and align on direction before execution." },
+  { _key: "design",    num: "03", name: "Design & Build", desc: "Ideas become reality. We craft beautiful, functional experiences — iterating closely with you at every milestone." },
+  { _key: "launch",    num: "04", name: "Launch & Evolve",desc: "We don't disappear after delivery. We monitor, measure, and continue to refine long after the work goes live." },
+];
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function CornerBracket({ className = "" }: { className?: string }) {
   return (
@@ -14,45 +54,53 @@ function CornerBracket({ className = "" }: { className?: string }) {
   );
 }
 
-const values = [
-  {
-    title: "Craft",
-    body: "We obsess over every detail — from the weight of a typeface to the timing of a hover state. Good work is never accidental.",
-  },
-  {
-    title: "Clarity",
-    body: "Great design communicates before anyone reads a word. We strip away everything that doesn't serve the message.",
-  },
-  {
-    title: "Impact",
-    body: "We measure success by what changes after we ship. Beautiful work that also moves the needle is the only kind worth making.",
-  },
-];
+function BracketBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-stretch gap-3 h-full">
+      <div className="flex flex-col justify-between w-6 shrink-0">
+        <CornerBracket />
+        <CornerBracket className="-rotate-90" />
+      </div>
+      <div className="flex-1 py-3">
+        {children}
+      </div>
+      <div className="flex flex-col justify-between w-6 shrink-0">
+        <CornerBracket className="rotate-90" />
+        <CornerBracket className="rotate-180" />
+      </div>
+    </div>
+  );
+}
 
-const steps = [
-  {
-    num: "01",
-    name: "Discovery",
-    desc: "We start by listening. Understanding your goals, your audience, and your competitive landscape before a single pixel is placed.",
-  },
-  {
-    num: "02",
-    name: "Strategy",
-    desc: "Every project begins with a clear plan. We map the solution, define success metrics, and align on direction before execution.",
-  },
-  {
-    num: "03",
-    name: "Design & Build",
-    desc: "Ideas become reality. We craft beautiful, functional experiences — iterating closely with you at every milestone.",
-  },
-  {
-    num: "04",
-    name: "Launch & Evolve",
-    desc: "We don't disappear after delivery. We monitor, measure, and continue to refine long after the work goes live.",
-  },
-];
+// ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [
+    { data: hero },
+    { data: story },
+    { data: valuesDoc },
+    { data: teamDoc },
+    { data: processDoc },
+  ] = await Promise.all([
+    sanityFetch({ query: HERO_QUERY }),
+    sanityFetch({ query: STORY_QUERY }),
+    sanityFetch({ query: VALUES_QUERY }),
+    sanityFetch({ query: TEAM_QUERY }),
+    sanityFetch({ query: PROCESS_QUERY }),
+  ]);
+
+  const heroLabel    = hero?.label    ?? "[ About H.Studio ]";
+  const heroHeadline = hero?.headline ?? "Creative\nStudio.";
+  const heroBg       = optimizedImg(hero?.backgroundImage, "/images/photographer.webp", 2400);
+
+  const blurb          = story?.blurb          ?? "";
+  const statementLines = story?.statementLines ?? ["We build brands,", "experiences", "& products", "that leave a mark."];
+
+  const values      = valuesDoc?.values      ?? VALUES_FALLBACK;
+  const teamMembers = teamDoc?.teamMembers   ?? TEAM_FALLBACK;
+  const steps       = processDoc?.processSteps ?? STEPS_FALLBACK;
+  const fullBleed   = optimizedImg(processDoc?.fullBleedPhoto, "/images/hero.webp", 2400);
+
   return (
     <>
 
@@ -60,17 +108,12 @@ export default function AboutPage() {
     <section className="relative overflow-hidden min-h-screen bg-black">
       <div className="relative flex flex-col min-h-screen px-4 md:px-8 pb-[60px] md:pb-[120px]">
 
-        {/* Background — desktop */}
-        <div className="hidden md:block pointer-events-none absolute inset-0">
-          <img src="/images/photographer.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-center" />
+        {/* Background */}
+        <div className="pointer-events-none absolute inset-0">
+          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover object-center md:object-center object-[65%_center]" />
         </div>
 
-        {/* Background — mobile */}
-        <div className="md:hidden pointer-events-none absolute inset-0">
-          <img src="/images/photographer.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-[65%_center]" />
-        </div>
-
-        {/* Frosted-glass gradient at bottom */}
+        {/* Frosted gradient at bottom */}
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[349px] backdrop-blur-[10px] bg-[rgba(217,217,217,0.01)] [mask-image:linear-gradient(to_bottom,transparent,black_50%)]" />
 
         <Navbar />
@@ -83,14 +126,14 @@ export default function AboutPage() {
                 className="text-[14px] text-white uppercase mix-blend-overlay leading-[1.1] whitespace-nowrap"
                 style={monoStyle}
               >
-                [ About H.Studio ]
+                {heroLabel}
               </p>
             </div>
             <h1
               className="font-medium capitalize text-[64px] md:text-[11vw] text-white text-center leading-[0.8] md:leading-[1.1] tracking-[-0.07em] mix-blend-overlay whitespace-pre-wrap md:whitespace-pre"
               style={interStyle}
             >
-              {"Creative\nStudio."}
+              {heroHeadline}
             </h1>
           </div>
         </div>
@@ -111,67 +154,43 @@ export default function AboutPage() {
             <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>001</p>
             <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>[ Our Story ]</p>
           </div>
-          <div className="flex items-stretch gap-3 md:w-[clamp(500px,55vw,860px)]">
-            <div className="flex flex-col justify-between w-6 shrink-0">
-              <CornerBracket />
-              <CornerBracket className="-rotate-90" />
-            </div>
-            <p className="flex-1 text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px] py-3" style={interStyle}>
-              H.Studio is a full-service creative studio founded by Michael Steinhofer in Chicago.
-              We partner with brands, founders, and teams who believe that design is one of their
-              most powerful competitive advantages — from brand identity to interactive web experiences,
-              we bring ideas to life with intention, craft, and a relentless focus on impact.
-            </p>
-            <div className="flex flex-col justify-between w-6 shrink-0">
-              <CornerBracket className="rotate-90" />
-              <CornerBracket className="rotate-180" />
-            </div>
+          <div className="md:w-[clamp(500px,55vw,860px)]">
+            <BracketBox>
+              <p className="text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px]" style={interStyle}>
+                {blurb}
+              </p>
+            </BracketBox>
           </div>
         </div>
 
-        {/* Alternating statement lines */}
+        {/* Statement lines */}
         <div className="w-full border-t border-[#1f1f1f]" />
         <div className="flex flex-col gap-2 uppercase">
-          <div
-            data-animate="from-right"
-            style={{ opacity: 0 }}
-            className="flex items-baseline gap-3"
-          >
-            <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84]" style={interStyle}>
-              We build brands,
-            </p>
-            <p className="text-[14px] text-[#1f1f1f] leading-[1.1] shrink-0" style={monoStyle}>001</p>
-          </div>
-          <div
-            data-animate="from-left"
-            style={{ opacity: 0 }}
-            className="flex justify-center md:justify-start md:pl-[15.6%]"
-          >
-            <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84]" style={interStyle}>
-              experiences
-            </p>
-          </div>
-          <div
-            data-animate="from-right"
-            style={{ opacity: 0 }}
-            className="flex justify-center md:justify-start md:pl-[30%]"
-          >
-            <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84]" style={interStyle}>
-              &amp; products
-            </p>
-          </div>
-          <div
-            data-animate="from-left"
-            style={{ opacity: 0 }}
-            className="flex items-end gap-3"
-          >
-            <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84]" style={interStyle}>
-              that leave a mark.
-            </p>
-            <p className="hidden md:block text-[14px] text-[#1f1f1f] leading-[1.1] shrink-0 pb-2" style={monoStyle}>
-              [ H.Studio ]
-            </p>
-          </div>
+          {statementLines.map((line: string, i: number) => {
+            const isRight = i % 2 === 0;
+            const indents = ["", "md:pl-[15.6%]", "md:pl-[30%]", ""];
+            const indent  = indents[i] ?? "";
+            return (
+              <div
+                key={i}
+                data-animate={isRight ? "from-right" : "from-left"}
+                style={{ opacity: 0 }}
+                className={`flex ${i === 0 ? "items-baseline gap-3" : ""} ${i === statementLines.length - 1 ? "items-end gap-3" : `justify-center md:justify-start ${indent}`}`}
+              >
+                {i === 0 && (
+                  <p className="text-[14px] text-[#1f1f1f] leading-[1.1] shrink-0" style={monoStyle}>001</p>
+                )}
+                <p className="font-light text-[clamp(32px,calc(9.524vw_-_41.14px),96px)] text-black tracking-[-0.08em] leading-[0.84]" style={interStyle}>
+                  {line}
+                </p>
+                {i === statementLines.length - 1 && (
+                  <p className="hidden md:block text-[14px] text-[#1f1f1f] leading-[1.1] shrink-0 pb-2" style={monoStyle}>
+                    [ H.Studio ]
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
       </div>
@@ -202,19 +221,15 @@ export default function AboutPage() {
         </div>
 
         <div data-animate-group className="flex flex-col md:flex-row gap-6 md:gap-8">
-          {values.map((v, i) => (
+          {values.map((v: { _key: string; title: string; body: string }, i: number) => (
             <div
-              key={v.title}
+              key={v._key}
               data-animate-delay={String(i * 0.2)}
               style={{ opacity: 0 }}
               className="flex-1"
             >
-              <div className="flex items-stretch gap-3 h-full">
-                <div className="flex flex-col justify-between w-6 shrink-0">
-                  <CornerBracket />
-                  <CornerBracket className="-rotate-90" />
-                </div>
-                <div className="flex-1 py-3 flex flex-col gap-3">
+              <BracketBox>
+                <div className="flex flex-col gap-3">
                   <p
                     className="font-black text-[24px] md:text-[28px] text-black tracking-[-0.04em] uppercase leading-[1.1]"
                     style={interStyle}
@@ -225,11 +240,7 @@ export default function AboutPage() {
                     {v.body}
                   </p>
                 </div>
-                <div className="flex flex-col justify-between w-6 shrink-0">
-                  <CornerBracket className="rotate-90" />
-                  <CornerBracket className="rotate-180" />
-                </div>
-              </div>
+              </BracketBox>
             </div>
           ))}
         </div>
@@ -247,52 +258,45 @@ export default function AboutPage() {
           <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>[ The Team ]</p>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-          <p
-            data-animate-delay="0"
-            style={{ opacity: 0, ...monoStyle }}
-            className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1] whitespace-nowrap"
-          >
-            [ The Team ]
-          </p>
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:gap-8 md:w-[clamp(600px,calc(160px_+_57vw),983px)]">
-            <div data-animate-delay="0.4" style={{ opacity: 0 }} className="flex items-stretch gap-3 flex-1">
-              <div className="flex flex-col justify-between w-6 shrink-0">
-                <CornerBracket />
-                <CornerBracket className="-rotate-90" />
-              </div>
-              <div className="flex-1 py-3 flex flex-col gap-4">
-                <div>
-                  <p
-                    className="font-black text-[20px] text-black tracking-[-0.04em] uppercase leading-[1.1]"
-                    style={interStyle}
-                  >
-                    Michael Steinhofer
-                  </p>
-                  <p className="text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px] italic mt-1" style={interStyle}>
-                    Creative Director &amp; Founder
-                  </p>
+        {teamMembers.map((member: { _key: string; name: string; role: string; bio: string; photo: { asset?: unknown } | null }) => {
+          const photoSrc = optimizedImg(member.photo, "/images/profile.webp", 900);
+          return (
+            <div key={member._key} className="flex flex-col md:flex-row md:items-start md:justify-between mb-12 last:mb-0">
+              <p
+                data-animate-delay="0"
+                style={{ opacity: 0, ...monoStyle }}
+                className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1] whitespace-nowrap"
+              >
+                [ The Team ]
+              </p>
+              <div className="flex flex-col gap-5 md:flex-row md:items-end md:gap-8 md:w-[clamp(600px,calc(160px_+_57vw),983px)]">
+                <div data-animate-delay="0.4" style={{ opacity: 0 }} className="flex-1">
+                  <BracketBox>
+                    <div className="flex flex-col gap-4">
+                      <div>
+                        <p className="font-black text-[20px] text-black tracking-[-0.04em] uppercase leading-[1.1]" style={interStyle}>
+                          {member.name}
+                        </p>
+                        <p className="text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px] italic mt-1" style={interStyle}>
+                          {member.role}
+                        </p>
+                      </div>
+                      <p className="text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px]" style={interStyle}>
+                        {member.bio}
+                      </p>
+                    </div>
+                  </BracketBox>
                 </div>
-                <p className="text-[14px] text-[#1f1f1f] leading-[1.3] tracking-[-0.56px]" style={interStyle}>
-                  Michael is a Chicago-based creative director with over a decade of experience
-                  building brands and digital products across fashion, technology, and culture.
-                  He founded H.Studio to bring together visual design, interaction design, and
-                  engineering under one roof — with quality as the non-negotiable constant.
-                </p>
-              </div>
-              <div className="flex flex-col justify-between w-6 shrink-0">
-                <CornerBracket className="rotate-90" />
-                <CornerBracket className="rotate-180" />
+                <div data-animate-delay="0.2" style={{ opacity: 0 }} className="flex items-start gap-6 shrink-0">
+                  <p className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>003</p>
+                  <div className="w-full md:w-[436px] aspect-[436/614] overflow-hidden">
+                    <img src={photoSrc} alt={member.name} className="w-full h-full object-cover" />
+                  </div>
+                </div>
               </div>
             </div>
-            <div data-animate-delay="0.2" style={{ opacity: 0 }} className="flex items-start gap-6 shrink-0">
-              <p className="hidden md:block text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>003</p>
-              <div className="w-full md:w-[436px] aspect-[436/614] overflow-hidden">
-                <img src="/images/profile.webp" alt="Michael Steinhofer" className="w-full h-full object-cover" />
-              </div>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
     </section>
 
@@ -300,7 +304,7 @@ export default function AboutPage() {
     <section className="w-full aspect-[375/565] md:aspect-[8/5] overflow-hidden bg-black">
       <img
         data-animate="blur-reveal"
-        src="/images/hero.webp"
+        src={fullBleed}
         alt=""
         className="w-full h-full object-cover"
         style={{ opacity: 0.5, filter: "blur(12px)" }}
@@ -332,18 +336,14 @@ export default function AboutPage() {
         </div>
 
         <div data-animate-group className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {steps.map((step, i) => (
+          {steps.map((step: { _key: string; num: string; name: string; desc: string }, i: number) => (
             <div
-              key={step.num}
+              key={step._key}
               data-animate-delay={String(i * 0.2)}
               style={{ opacity: 0 }}
             >
-              <div className="flex items-stretch gap-3 h-full">
-                <div className="flex flex-col justify-between w-6 shrink-0">
-                  <CornerBracket />
-                  <CornerBracket className="-rotate-90" />
-                </div>
-                <div className="flex-1 py-3 flex flex-col gap-2">
+              <BracketBox>
+                <div className="flex flex-col gap-2">
                   <div className="flex items-baseline gap-2">
                     <p className="text-[14px] text-[#1f1f1f] uppercase leading-[1.1]" style={monoStyle}>
                       {step.num}
@@ -359,11 +359,7 @@ export default function AboutPage() {
                     {step.desc}
                   </p>
                 </div>
-                <div className="flex flex-col justify-between w-6 shrink-0">
-                  <CornerBracket className="rotate-90" />
-                  <CornerBracket className="rotate-180" />
-                </div>
-              </div>
+              </BracketBox>
             </div>
           ))}
         </div>
